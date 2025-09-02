@@ -37,21 +37,21 @@ $current_page = $current_page ?? 'home';
             <nav class="hidden lg:flex items-center space-x-8">
                 <ul class="flex items-center space-x-8 relative">
                     <li>
-                        <a href="home" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'home' ? 'active text-[#b915ff]' : '' ?>"><i class="fas fa-home mr-2"></i>Home</a>
+                        <a href="home" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'home' ? 'active text-[#b915ff]' : '' ?>"></i>Home</a>
                     </li>
                     <li>
-                        <a href="about" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'about' ? 'active text-[#b915ff]' : '' ?>"><i class="fas fa-info-circle mr-2"></i>About</a>
+                        <a href="about" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'about' ? 'active text-[#b915ff]' : '' ?>"></i>About</a>
                     </li>
                     <li class="relative group-hover-menu">
-                        <a href="courses" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium dropdown-toggle transition-colors duration-200"><i class="fas fa-book mr-2"></i>Courses <i class="fas fa-chevron-down text-xs ml-1"></i></a>
-                        <ul id="courses-dropdown" class="dropdown-menu absolute top-full mt-4 w-48 rounded-xl overflow-hidden transition-all duration-300 transform scale-95 origin-top z-10">
+                        <a href="courses" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium dropdown-toggle transition-colors duration-200"></i>Courses </i></a>
+                        <!-- <ul id="courses-dropdown" class="dropdown-menu absolute top-full mt-4 w-48 rounded-xl overflow-hidden transition-all duration-300 transform scale-95 origin-top z-10">
                             <li><a href="/courses/aiub" class="block px-6 py-3 **text-card-color** hover:bg-card-hover-bg transition-colors duration-200">AIUB</a></li>
                             <li><a href="/courses/nsu" class="block px-6 py-3 **text-card-color** hover:bg-card-hover-bg transition-colors duration-200">NSU</a></li>
                             <li><a href="/courses/brac" class="block px-6 py-3 **text-card-color** hover:bg-card-hover-bg transition-colors duration-200">BRAC</a></li>
-                        </ul>
+                        </ul> -->
                     </li>
                     <li>
-                        <a href="/contact" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'contact' ? 'active text-[#b915ff]' : '' ?>"><i class="fas fa-envelope mr-2"></i>Contact</a>
+                        <a href="/contact" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'contact' ? 'active text-[#b915ff]' : '' ?>"></i>Contact</a>
                     </li>
                 </ul>
             </nav>
