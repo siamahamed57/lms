@@ -6,16 +6,19 @@
 $page = $_GET['page'] ?? 'home';
 
 // Include the header
+// Include the header
 include 'includes/header.php';
+
 if ($page === 'logout') {
     // Clear session
     $_SESSION = [];
     session_destroy();
 
-    // Redirect to login/account page
-    header('Location: index.php?page=account');
+    // Redirect to home
+
     exit;
 }
+
 // Routing
 switch ($page) {
     case 'home':

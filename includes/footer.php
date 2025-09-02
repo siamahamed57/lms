@@ -28,17 +28,17 @@
                 <nav>
                     <h4 class="font-semibold text-lg mb-3 text-[#b915ff]">Platform</h4>
                     <ul class="space-y-2">
-                        <li><a href="/courses" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Courses</a></li>
-                        <li><a href="/about" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">About Us</a></li>
-                        <li><a href="/contact" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Contact</a></li>
+                        <li><a href="courses" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Courses</a></li>
+                        <li><a href="about" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">About Us</a></li>
+                        <li><a href="contact" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Contact</a></li>
                     </ul>
                 </nav>
                 <nav>
                     <h4 class="font-semibold text-lg mb-3 text-[#b915ff]">Resources</h4>
                     <ul class="space-y-2">
-                        <li><a href="/blog" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Blog</a></li>
-                        <li><a href="/support" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Support</a></li>
-                        <li><a href="/privacy" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Privacy Policy</a></li>
+                        <li><a href="blog" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Blog</a></li>
+                        <li><a href="support" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Support</a></li>
+                        <li><a href="privacy" class="text-card-color hover:text-[#60a5fa] transition-colors duration-200">Privacy Policy</a></li>
                     </ul>
                 </nav>
             </div>
