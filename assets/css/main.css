@@ -1,0 +1,85 @@
+ body {
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+        }
+        
+        /* Dark Theme Styles (default) */
+        [data-theme="dark"] {
+            --bg-color: #0d1117;
+            --text-color: #d7d8db;
+            --header-bg: #111827b3;
+            --header-border: #ffffff1a;
+            --card-bg: #1f2937;
+            --card-hover-bg: #374151;
+        }
+
+        /* Light Theme Styles */
+        [data-theme="light"] {
+            --bg-color: #e6e7eb;
+            --text-color: #000000;
+            --header-bg: #ffffffb3;
+            --header-border: #d1d5db;
+            --card-bg: #ffffff;
+            --card-hover-bg: #e5e7eb;
+        }
+
+        /* Apply colors from CSS variables */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .glass-header {
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
+            box-shadow: 0 4px 6px #0000001a;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .dropdown-menu a:hover {
+            background-color: var(--card-hover-bg);
+        }
+        .bg-card-bg {
+            background-color: var(--card-bg);
+        }
+        .text-card-color {
+            color: var(--text-color);
+        }
+
+        /* Nav link underline animation - Now a solid color */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #b915ff;
+            transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        /* Profile icon hover effect */
+        .user-profile .profile-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .user-profile:hover .profile-icon {
+            transform: scale(1.1);
+            color: #60a5fa;
+        }
+
+        /* GSAP Dropdown visibility controlled by pointer-events */
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95);
+            pointer-events: none; /* Disables interaction when hidden */
+        }
