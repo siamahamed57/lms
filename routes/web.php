@@ -68,15 +68,19 @@ switch ($page) {
     case 'student_dashboard':
         include 'student/dashboard.php';
         break;
-  case 'account':
+    case 'account':
         include 'pages/account.php';
         break;
- case 'logout':
-        include 'api/auth/logout.php';
+    case 'contact':
+        include 'pages/contact.php';
         break;
     default:
         include 'pages/404.php';
         break;
+    case 'course_details':
+        include './api/courses/detail.php';
+        break;
+
 }
 
 // Include the footer

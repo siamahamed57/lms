@@ -51,7 +51,7 @@ $current_page = $current_page ?? 'home';
                         </ul> -->
                     </li>
                     <li>
-                        <a href="/contact" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'contact' ? 'active text-[#b915ff]' : '' ?>"></i>Contact</a>
+                        <a href="contact" class="nav-link relative **text-card-color** hover:text-[#b915ff] font-medium transition-colors duration-200 <?= $current_page == 'contact' ? 'active text-[#b915ff]' : '' ?>"></i>Contact</a>
                     </li>
                 </ul>
             </nav>

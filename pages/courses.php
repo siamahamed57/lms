@@ -92,7 +92,7 @@ function render_course_list($courses, $current_page, $total_pages){
                         </div>
                         <div class="flex justify-between items-center mt-4">
                             <span class="text-lg font-bold price">$<?= number_format($course['price'], 2) ?></span>
-                            <a href="detail.php?id=<?= htmlspecialchars($course['id']) ?>" class="details-link">View Details</a>
+                            <a href="course_details?id=<?= htmlspecialchars($course['id']) ?>" class="details-link">View Details</a>
                         </div>
                     </div>
                 </div>
