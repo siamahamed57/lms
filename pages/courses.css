@@ -1,0 +1,320 @@
+/*
+ * Modern design for Courses Page
+ * Inspired by Apple design, glassmorphism, and modern UI trends.
+ */
+
+:root {
+    --page-bg: #0d1117; /* GitHub dark background */
+    --card-bg: rgba(22, 27, 34, 0.6);
+    --card-border: rgba(48, 54, 61, 0.6);
+    --card-hover-bg: rgba(30, 36, 44, 0.7);
+    --glass-bg: rgba(22, 27, 34, 0.5);
+    --glass-border: rgba(48, 54, 61, 0.8);
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --primary-accent: #58a6ff; /* GitHub blue */
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --dot-color: rgba(48, 54, 61, 0.5);
+}
+
+/* This assumes the theme switcher adds a `data-theme="light"` attribute to the html tag */
+html[data-theme="light"] {
+    --page-bg: #f6f8fa;
+    --card-bg: rgba(255, 255, 255, 0.6);
+    --card-border: rgba(200, 205, 210, 0.8);
+    --card-hover-bg: rgba(255, 255, 255, 0.9);
+    --glass-bg: rgba(255, 255, 255, 0.5);
+    --glass-border: rgba(200, 205, 210, 1);
+    --text-primary: #24292f;
+    --text-secondary: #57606a;
+    --primary-accent: #0969da; /* GitHub blue for light mode */
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --dot-color: rgba(200, 205, 210, 0.7);
+}
+
+/* --- Base & Background --- */
+body.courses-page {
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+.dot-grid-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 25px 25px;
+}
+
+.animated-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(ellipse at 10% 20%, rgba(88, 166, 255, 0.1), transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(168, 85, 247, 0.1), transparent 50%);
+    animation: subtle-breathing 15s ease-in-out infinite alternate;
+}
+
+@keyframes subtle-breathing {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* --- Main Content Container & Header --- */
+.main-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* --- Horizontal Filter Bar (Glassmorphism) --- */
+.filter-bar {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.25rem; /* 20px */
+    padding: 1rem;
+    margin-bottom: 3rem;
+    position: sticky;
+    top: 1rem;
+    z-index: 10;
+    box-shadow: 0 8px 32px 0 var(--shadow-color);
+}
+
+#filter-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.form-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.form-group.search-group {
+    flex: 2; /* Make search bar wider */
+}
+
+.form-group i {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+#filter-form input, #filter-form select {
+    width: 100%;
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--text-primary);
+    border-radius: 0.75rem; /* 12px */
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    transition: all 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+#filter-form select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+html[data-theme="light"] #filter-form select {
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2357606a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+
+#filter-form input:focus, #filter-form select:focus {
+    outline: none;
+    background-color: var(--card-bg);
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+}
+
+/* --- Course Card Styling --- */
+#course-list-container {
+    transition: opacity 0.3s ease;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 6px -1px var(--shadow-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    border-radius: 1.25rem; /* 20px */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px var(--shadow-color), 0 0 0 1px var(--primary-accent);
+    border-color: var(--primary-accent);
+}
+
+.card img {
+    aspect-ratio: 16 / 9;
+}
+
+.card .p-6 {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card h3 {
+    color: var(--text-primary);
+}
+
+.card p, .card span, .card .fas {
+    color: var(--text-secondary);
+}
+
+.card .p-6 > div:last-child {
+    margin-top: auto; /* Pushes the footer to the bottom */
+}
+
+.card .price {
+    color: var(--text-primary);
+}
+
+.card .details-link {
+    font-weight: 600;
+    color: var(--primary-accent);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    background-color: rgba(88, 166, 255, 0.1);
+    border: 1px solid transparent;
+}
+
+.card .details-link:hover {
+    opacity: 0.8;
+    background-color: rgba(88, 166, 255, 0.2);
+    border-color: var(--primary-accent);
+}
+
+/* --- "No courses found" Message --- */
+.no-courses-found {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--card-bg);
+    border: 2px dashed var(--card-border);
+    border-radius: 1.25rem;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+}
+
+/* --- Pagination --- */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 3rem;
+}
+
+.pagination a {
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.75rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.pagination a:hover {
+    border-color: var(--primary-accent);
+    color: var(--primary-accent);
+}
+
+.pagination a.active {
+    background-color: var(--primary-accent);
+    border-color: var(--primary-accent);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 4px 14px 0 rgba(88, 166, 255, 0.39);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 1024px) {
+    .main-container {
+        padding: 1.5rem;
+    }
+    #filter-form {
+        flex-wrap: wrap;
+    }
+    .form-group {
+        flex-basis: calc(50% - 0.5rem);
+    }
+    .form-group.search-group {
+        flex-basis: 100%;
+        flex-grow: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 2.25rem;
+    }
+    .page-header p {
+        font-size: 1rem;
+    }
+    #filter-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-container {
+        padding: 1rem;
+    }
+    .pagination a {
+        padding: 0.5rem 1rem;
+    }
+}

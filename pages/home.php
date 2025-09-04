@@ -1,301 +1,374 @@
+<?php
+// Path to the database connection file (if needed for dynamic data in the future).
+// require_once __DIR__ . '/../includes/db.php';
 
+// For this template, data is hardcoded as per the request.
+// In a real application, you would fetch courses, departments, etc., from the database here.
+// e.g., $featured_courses = db_select("SELECT * FROM courses WHERE is_featured = 1 LIMIT 4");
+?>
 
-<main>
-    <section class="relative w-full overflow-hidden min-h-screen flex items-center justify-center text-center py-20 bg-card-bg">
-        <div class="absolute inset-0 z-0">
-            <img src="" alt="Hero background" class="w-full h-full object-cover object-center opacity-30">
-        </div>
-        <div class="relative z-10 max-w-4xl mx-auto px-4">
-            <h1 class="text-5xl md:text-6xl font-extrabold leading-tight text-white mb-6 animate-fade-in">
-                Unlock Your Potential.<br> Learn Anywhere, Anytime.
-            </h1>
-            <p class="text-xl md:text-2xl text-card-color opacity-90 mb-8 animate-fade-in-up">
-                UNIES is your gateway to quality education, offering expert-led courses from top universities.
-            </p>
-            <a href="#courses" class="bg-[#b915ff] text-white font-bold py-4 px-10 rounded-full text-lg hover:bg-[#9c00e6] transition-colors duration-300 transform hover:scale-105 inline-block animate-slide-in">
-                Explore Courses
-            </a>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unies - Your Compass For University Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #a855f7;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #0c0c0e;
+            --bg-secondary: #111115;
+            --bg-tertiary: #16161b;
+            --surface: rgba(255, 255, 255, 0.05);
+            --surface-hover: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --glass-bg: rgba(17, 17, 21, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .dot-grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .animated-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 10% 20%, rgba(99, 102, 241, 0.2), transparent 40%),
+                radial-gradient(ellipse at 90% 80%, rgba(168, 85, 247, 0.2), transparent 40%);
+            opacity: 0.8;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .glass-strong {
+            background: rgba(22, 22, 27, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .modern-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modern-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Accordion Styles */
+        .accordion-item {
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .accordion-header {
+            transition: background 0.3s ease;
+        }
+        .accordion-header:hover {
+            background: var(--surface);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .accordion-icon.rotate {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dot-grid-bg"></div>
+    <div class="animated-overlay"></div>
+
+    <section class="relative z-10 py-24 px-6 text-center overflow-hidden">
+        <div class="container mx-auto max-w-5xl">
+            <h1 class="text-5xl md:text-8xl font-black uppercase text-gray-300 tracking-wider hero-title">WELCOME TO <span class="gradient-text-primary">UNIES</span></h1>
+            <p class="text-xl md:text-2xl mt-4 text-gray-400 hero-subtitle">Your Compass For University Success</p>
+            <p class="mt-6 max-w-2xl mx-auto text-gray-500 hero-p">Everything You Need in One Platform. Say goodbye to the endless search for curriculum-based content.</p>
+
+            <div class="mt-12 flex flex-wrap justify-center items-center gap-4 hero-unis">
+                <?php
+                $universities = ['AIUB', 'BRAC', 'NSU', 'EWU', 'DIU', 'IUB'];
+                foreach ($universities as $uni) :
+                ?>
+                    <div class="glass rounded-xl px-5 py-3 text-lg font-bold text-gray-300 transition-all duration-300 hover:text-white hover:border-purple-500 cursor-pointer">
+                        <?= htmlspecialchars($uni) ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
     </section>
 
-    <section id="courses" class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-7xl">
-            <h2 class="text-4xl font-bold text-center text-[#b915ff] mb-4">Popular Courses</h2>
-            <p class="text-card-color text-lg text-center mb-12">Discover our most in-demand courses across various disciplines.</p>
+    <main class="container mx-auto max-w-7xl px-6 py-16 space-y-24">
+
+        <section class="courses-section">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold gradient-text">Top Courses for Spring 2024-2025</h2>
+                <p class="text-gray-400 mt-2">Curated for CSE & EEE Departments</p>
+            </div>
             
-            <div class="flex flex-wrap justify-center gap-4 mb-12">
-                <button class="bg-header-bg text-card-color px-6 py-3 rounded-full font-medium hover:bg-card-hover-bg transition-colors duration-200">Programming</button>
-                <button class="bg-header-bg text-card-color px-6 py-3 rounded-full font-medium hover:bg-card-hover-bg transition-colors duration-200">Design</button>
-                <button class="bg-header-bg text-card-color px-6 py-3 rounded-full font-medium hover:bg-card-hover-bg transition-colors duration-200">Marketing</button>
-                <button class="bg-header-bg text-card-color px-6 py-3 rounded-full font-medium hover:bg-card-hover-bg transition-colors duration-200">AI & Machine Learning</button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="bg-header-bg rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1517694452037-124ce80c102a?q=80&w=2940&auto=format&fit=crop" alt="Programming Course" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="font-bold text-xl text-[#b915ff] mb-2">Web Development Fundamentals</h3>
-                        <p class="text-card-color text-sm mb-4">Master HTML, CSS, and JavaScript to build responsive websites from scratch.</p>
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-yellow-400">
-                                <i class="fas fa-star"></i> 4.8 (2,450)
-                            </span>
-                            <span class="text-card-color"><i class="fas fa-users mr-1"></i> 12,000 enrolled</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-header-bg rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=2940&auto=format&fit=crop" alt="UI/UX Design Course" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="font-bold text-xl text-[#b915ff] mb-2">Complete UI/UX Design Masterclass</h3>
-                        <p class="text-card-color text-sm mb-4">Learn to create user-friendly interfaces and compelling user experiences.</p>
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-yellow-400">
-                                <i class="fas fa-star"></i> 4.9 (1,890)
-                            </span>
-                            <span class="text-card-color"><i class="fas fa-users mr-1"></i> 9,500 enrolled</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-header-bg rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                    <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2940&auto=format&fit=crop" alt="Data Science Course" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="font-bold text-xl text-[#b915ff] mb-2">Data Science & Python</h3>
-                        <p class="text-card-color text-sm mb-4">Dive into the world of data with Python programming and statistical analysis.</p>
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-yellow-400">
-                                <i class="fas fa-star"></i> 4.7 (3,100)
-                            </span>
-                            <span class="text-card-color"><i class="fas fa-users mr-1"></i> 15,200 enrolled</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-center mt-12">
-                <a href="/courses" class="bg-transparent border border-[#b915ff] text-[#b915ff] font-semibold py-3 px-8 rounded-full hover:bg-[#b915ff] hover:text-white transition-colors duration-300">View All Courses</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-7xl">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-[#b915ff] mb-4">Why Choose UNIES?</h2>
-                <p class="text-card-color text-lg max-w-2xl mx-auto">We are committed to providing you with the best learning experience, anytime, anywhere.</p>
-            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg transition-all duration-300 hover:scale-105">
-                    <i class="fas fa-laptop-code text-5xl text-[#60a5fa] mb-4"></i>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Flexible Learning</h3>
-                    <p class="text-card-color text-sm opacity-80">Access courses on your schedule, on any device. Your education, your pace.</p>
-                </div>
-                <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg transition-all duration-300 hover:scale-105">
-                    <i class="fas fa-user-tie text-5xl text-purple-400 mb-4"></i>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Expert Instructors</h3>
-                    <p class="text-card-color text-sm opacity-80">Learn from top educators and industry professionals who are passionate about teaching.</p>
-                </div>
-                <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg transition-all duration-300 hover:scale-105">
-                    <i class="fas fa-certificate text-5xl text-yellow-500 mb-4"></i>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Accredited Certificates</h3>
-                    <p class="text-card-color text-sm opacity-80">Earn a shareable, professional certificate upon course completion to showcase your skills.</p>
-                </div>
-                <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg transition-all duration-300 hover:scale-105">
-                    <i class="fas fa-dollar-sign text-5xl text-green-500 mb-4"></i>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Affordable Pricing</h3>
-                    <p class="text-card-color text-sm opacity-80">High-quality education that doesn't break the bank. We offer flexible payment options.</p>
-                </div>
-                <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg transition-all duration-300 hover:scale-105">
-                    <i class="fas fa-chalkboard-teacher text-5xl text-red-400 mb-4"></i>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Interactive Learning</h3>
-                    <p class="text-card-color text-sm opacity-80">Engage with quizzes, assignments, and real-world projects to solidify your knowledge.</p>
-                </div>
-                <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg transition-all duration-300 hover:scale-105">
-                    <i class="fas fa-comments text-5xl text-cyan-400 mb-4"></i>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Community Support</h3>
-                    <p class="text-card-color text-sm opacity-80">Join discussion forums and connect with a global community of learners and instructors.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-7xl">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-[#b915ff] mb-4">Our Achievements</h2>
-                <p class="text-card-color text-lg max-w-2xl mx-auto">Numbers that speak for themselves.</p>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="text-center bg-header-bg p-8 rounded-2xl shadow-lg">
-                    <div class="text-5xl font-bold text-[#b915ff] mb-2" data-count="150000">0</div>
-                    <p class="text-card-color font-semibold">Students Enrolled</p>
-                </div>
-                <div class="text-center bg-header-bg p-8 rounded-2xl shadow-lg">
-                    <div class="text-5xl font-bold text-[#b915ff] mb-2" data-count="250">0</div>
-                    <p class="text-card-color font-semibold">Courses Available</p>
-                </div>
-                <div class="text-center bg-header-bg p-8 rounded-2xl shadow-lg">
-                    <div class="text-5xl font-bold text-[#b915ff] mb-2" data-count="150">0</div>
-                    <p class="text-card-color font-semibold">Countries Reached</p>
-                </div>
-                <div class="text-center bg-header-bg p-8 rounded-2xl shadow-lg">
-                    <div class="text-5xl font-bold text-[#b915ff] mb-2" data-count="98">0</div>
-                    <p class="text-card-color font-semibold">% Success Rate</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-7xl">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-[#b915ff] mb-4">What Our Students Say</h2>
-                <p class="text-card-color text-lg max-w-2xl mx-auto">Hear from the people who have transformed their lives with UNIES.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-header-bg p-8 rounded-2xl shadow-lg">
-                    <p class="text-card-color italic mb-4">"The courses are incredibly well-structured and easy to follow. I landed my dream job just a few months after completing my certificate. UNIES changed my career path!"</p>
-                    <div class="flex items-center">
-                        <img src="https://images.unsplash.com/photo-1549068106-b024baf5062d?q=80&w=2942&auto=format&fit=crop" alt="Student 1" class="w-16 h-16 rounded-full object-cover mr-4">
-                        <div>
-                            <p class="font-bold text-card-color">Jane Doe</p>
-                            <p class="text-sm text-card-color opacity-70">Frontend Developer</p>
-                            <span class="text-yellow-400 text-sm">★★★★★</span>
+                <?php
+                $courses = [
+                    ['title' => 'Object Oriented Programming (JAVA)', 'students' => '85+', 'price' => '899', 'thumbnail' => 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&q=80'],
+                    ['title' => 'Introduction To Programming Using C++', 'students' => '70+', 'price' => '699', 'thumbnail' => 'https://images.unsplash.com/photo-1605379399642-870262d3d051?w=600&q=80'],
+                    ['title' => 'Physics 1', 'students' => '49+', 'price' => '449', 'thumbnail' => 'https://images.unsplash.com/photo-1532187643623-dbf2f5a73b13?w=600&q=80'],
+                    ['title' => 'Introduction To Electrical Circuits', 'students' => '50+', 'price' => '699', 'thumbnail' => 'https://images.unsplash.com/photo-1581092921462-420005a4d4b8?w=600&q=80'],
+                    ['title' => 'CSE Fresher Pack', 'students' => '25+', 'price' => '1249', 'thumbnail' => 'https://images.unsplash.com/photo-1550439062-609e1531270e?w=600&q=80'],
+                    ['title' => 'EEE Fresher Pack', 'students' => '80+', 'price' => '1149', 'thumbnail' => 'https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?w=600&q=80'],
+                ];
+                foreach ($courses as $course) :
+                ?>
+                    <div class="glass-strong rounded-3xl p-6 modern-card flex flex-col">
+                        <img src="<?= htmlspecialchars($course['thumbnail']) ?>" alt="<?= htmlspecialchars($course['title']) ?>" class="w-full h-40 object-cover rounded-2xl mb-5">
+                        <h3 class="text-xl font-bold text-white flex-grow"><?= htmlspecialchars($course['title']) ?></h3>
+                        <div class="flex justify-between items-center mt-4 text-gray-400">
+                            <span><i class="fas fa-users mr-2 text-primary"></i><?= htmlspecialchars($course['students']) ?> Students</span>
+                            <span class="text-2xl font-black text-white">৳<?= htmlspecialchars($course['price']) ?></span>
                         </div>
+                        <a href="#" class="btn-primary w-full text-center py-3 px-6 mt-5 rounded-xl font-semibold text-white">
+                            View Course <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
                     </div>
-                </div>
-                <div class="bg-header-bg p-8 rounded-2xl shadow-lg">
-                    <p class="text-card-color italic mb-4">"I love the flexibility. As a busy professional, I can learn at my own pace. The instructors are top-notch and always available to help. Highly recommend!"</p>
-                    <div class="flex items-center">
-                        <img src="https://images.unsplash.com/photo-1588656201314-e758a5e305e5?q=80&w=2942&auto=format&fit=crop" alt="Student 2" class="w-16 h-16 rounded-full object-cover mr-4">
-                        <div>
-                            <p class="font-bold text-card-color">John Smith</p>
-                            <p class="text-sm text-card-color opacity-70">Project Manager</p>
-                            <span class="text-yellow-400 text-sm">★★★★★</span>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <section class="departments-section">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold gradient-text">Available Departments</h2>
+                <p class="text-gray-400 mt-2">More departments coming soon!</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <?php
+                $departments = [
+                    ['name' => 'CSE', 'status' => '7 Courses', 'icon' => 'fa-laptop-code', 'color' => 'from-purple-500 to-indigo-500'],
+                    ['name' => 'EEE', 'status' => '4 Courses', 'icon' => 'fa-bolt', 'color' => 'from-cyan-500 to-blue-500'],
+                    ['name' => 'BBA', 'status' => 'On Production', 'icon' => 'fa-chart-line', 'color' => 'from-yellow-500 to-orange-500'],
+                    ['name' => 'IPE', 'status' => 'Upcoming', 'icon' => 'fa-industry', 'color' => 'from-gray-500 to-gray-600'],
+                    ['name' => 'Pharmacy', 'status' => 'On Production', 'icon' => 'fa-pills', 'color' => 'from-green-500 to-emerald-500'],
+                ];
+                foreach ($departments as $dept) :
+                ?>
+                    <div class="glass-strong rounded-3xl p-6 text-center modern-card cursor-pointer">
+                        <div class="w-20 h-20 mx-auto bg-gradient-to-br <?= htmlspecialchars($dept['color']) ?> rounded-2xl flex items-center justify-center mb-4">
+                            <i class="fas <?= htmlspecialchars($dept['icon']) ?> text-3xl text-white"></i>
                         </div>
+                        <h3 class="text-xl font-bold text-white"><?= htmlspecialchars($dept['name']) ?></h3>
+                        <p class="text-gray-400"><?= htmlspecialchars($dept['status']) ?></p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <section class="cta-section glass-strong rounded-3xl p-12 modern-card">
+            <div class="grid md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <p class="font-semibold gradient-text-primary">FALL 2024-2025</p>
+                    <h2 class="text-4xl font-bold text-white mt-2">Join to Get Up-to-Date Content Each Semester</h2>
+                    <p class="text-gray-400 mt-4">We align with your university's curriculum, ensuring you get the most relevant materials to excel in your exams and projects.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-6 text-center">
+                    <div>
+                        <span class="text-5xl font-black gradient-text-primary">3</span>
+                        <p class="text-gray-400 mt-1">Departments</p>
+                    </div>
+                    <div>
+                        <span class="text-5xl font-black gradient-text-primary">715+</span>
+                        <p class="text-gray-400 mt-1">Students</p>
+                    </div>
+                    <div>
+                        <span class="text-5xl font-black gradient-text-primary">9</span>
+                        <p class="text-gray-400 mt-1">Total Courses</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-7xl">
+        <section class="faq-section">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-[#b915ff] mb-4">Your Path to Success</h2>
-                <p class="text-card-color text-lg max-w-2xl mx-auto">A simple, four-step process to transform your career.</p>
+                <h2 class="text-4xl font-bold gradient-text">Frequently Asked Questions</h2>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="flex flex-col items-center text-center p-6 bg-header-bg rounded-2xl shadow-lg">
-                    <div class="bg-[#b915ff] w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mb-4">1</div>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Browse Courses</h3>
-                    <p class="text-card-color text-sm opacity-80">Explore our vast catalog of courses from various fields.</p>
+            <div class="max-w-4xl mx-auto glass-strong rounded-3xl p-8">
+                <div class="accordion-item">
+                    <div class="accordion-header p-6 cursor-pointer flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">What is UNIES?</h3>
+                        <i class="fas fa-chevron-down transition-transform duration-300 accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-gray-400">UNIES is an online learning platform designed specifically for university students. We offer a variety of courses, resources, and tools to help you succeed in your academic journey and beyond.</p>
+                    </div>
                 </div>
-                <div class="flex flex-col items-center text-center p-6 bg-header-bg rounded-2xl shadow-lg">
-                    <div class="bg-[#b915ff] w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mb-4">2</div>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Enroll & Learn</h3>
-                    <p class="text-card-color text-sm opacity-80">Join a course and start learning at your own pace with our intuitive platform.</p>
+                <div class="accordion-item">
+                    <div class="accordion-header p-6 cursor-pointer flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">What kind of courses do you offer?</h3>
+                        <i class="fas fa-chevron-down transition-transform duration-300 accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-gray-400">We offer curriculum-based courses for major departments like CSE, EEE, BBA, and more. Our content is tailored to match what you're learning in your university classes each semester.</p>
+                    </div>
                 </div>
-                <div class="flex flex-col items-center text-center p-6 bg-header-bg rounded-2xl shadow-lg">
-                    <div class="bg-[#b915ff] w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mb-4">3</div>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Get Certified</h3>
-                    <p class="text-card-color text-sm opacity-80">Complete your course and earn a professional certificate to validate your skills.</p>
+                <div class="accordion-item">
+                    <div class="accordion-header p-6 cursor-pointer flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Who are your instructors?</h3>
+                        <i class="fas fa-chevron-down transition-transform duration-300 accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-gray-400">Our instructors are experienced professionals and senior students who have excelled in these subjects. They understand the curriculum and know how to teach concepts effectively for university-level exams.</p>
+                    </div>
                 </div>
-                <div class="flex flex-col items-center text-center p-6 bg-header-bg rounded-2xl shadow-lg">
-                    <div class="bg-[#b915ff] w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mb-4">4</div>
-                    <h3 class="font-bold text-xl text-card-color mb-2">Apply Knowledge</h3>
-                    <p class="text-card-color text-sm opacity-80">Use your new skills and certificate to advance your career or start a new one.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="bg-[#b915ff] py-16 text-center text-white">
-        <div class="container mx-auto px-4 max-w-4xl">
-            <h2 class="text-4xl font-bold mb-4">Start Learning Today for Free!</h2>
-            <p class="text-lg mb-8">Join thousands of learners and unlock your career potential with UNIES. Sign up now to get unlimited access to our free courses.</p>
-            <a href="/register" class="bg-white text-[#b915ff] font-bold py-4 px-10 rounded-full text-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105 inline-block">
-                Sign Up Now
-            </a>
-        </div>
-    </section>
-
-    <section class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-2xl">
-            <div class="bg-header-bg p-8 rounded-2xl text-center shadow-lg">
-                <h3 class="text-2xl font-bold text-[#b915ff] mb-2">Subscribe to Our Newsletter</h3>
-                <p class="text-card-color mb-6">Get free resources, exclusive tips, and the latest updates directly in your inbox.</p>
-                <form action="#" method="post" class="flex flex-col sm:flex-row gap-4">
-                    <input type="email" name="email" placeholder="Enter your email" required class="flex-grow px-4 py-3 rounded-lg bg-transparent text-card-color border border-header-border focus:outline-none focus:ring-2 focus:ring-[#b915ff]">
-                    <button type="submit" class="bg-[#b915ff] text-white font-semibold px-6 py-3 rounded-lg hover:bg-[#9c00e6] transition-colors duration-300">
-                        Subscribe
-                    </button>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-20 bg-card-bg">
-        <div class="container mx-auto px-4 max-w-7xl">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-[#b915ff] mb-4">Frequently Asked Questions</h2>
-                <p class="text-card-color text-lg max-w-2xl mx-auto">Find answers to the most common questions about our platform.</p>
-            </div>
-            <div class="space-y-4">
-                <div class="bg-header-bg p-6 rounded-xl shadow-lg">
-                    <h3 class="font-bold text-xl text-card-color mb-2">How do I access my courses?</h3>
-                    <p class="text-card-color opacity-80">Once you enroll, you can access your courses instantly from your personal dashboard. All content is available 24/7.</p>
-                </div>
-                <div class="bg-header-bg p-6 rounded-xl shadow-lg">
-                    <h3 class="font-bold text-xl text-card-color mb-2">Are the certificates accredited?</h3>
-                    <p class="text-card-color opacity-80">Yes, our certificates are recognized by industry leaders and can be added to your professional profiles and resume.</p>
-                </div>
-                <div class="bg-header-bg p-6 rounded-xl shadow-lg">
-                    <h3 class="font-bold text-xl text-card-color mb-2">What is your refund policy?</h3>
-                    <p class="text-card-color opacity-80">We offer a 30-day money-back guarantee for all paid courses. If you're not satisfied, we'll give you a full refund.</p>
+                <div class="accordion-item">
+                    <div class="accordion-header p-6 cursor-pointer flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">How much do your courses cost?</h3>
+                        <i class="fas fa-chevron-down transition-transform duration-300 accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="p-6 pt-0 text-gray-400">Our courses are priced affordably for university students. We also offer "Fresher Packs" which provide great value by bundling multiple essential courses for a new semester.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
-</main>
+        </section>
 
-<script>
-    // Counter animation for statistics section
-    document.addEventListener('DOMContentLoaded', () => {
-        const counters = document.querySelectorAll('[data-count]');
+        <section class="text-center py-16">
+             <h2 class="text-3xl font-bold text-white">Feel free to reach out Anytime</h2>
+             <p class="text-gray-400 mt-2">At Unies, we're here for you. Just drop us a line anytime!</p>
+             <button class="btn-primary py-3 px-8 mt-6 rounded-xl text-lg font-semibold text-white">
+                Contact Us
+             </button>
+        </section>
 
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.5
-        };
+    </main>
 
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const counter = entry.target;
-                    const target = parseInt(counter.dataset.count);
-                    let count = 0;
-                    const duration = 2000;
-                    const increment = target / (duration / 16);
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Accordion Logic
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling;
+                    const icon = header.querySelector('.accordion-icon');
+                    const isExpanded = content.style.maxHeight && content.style.maxHeight !== '0px';
 
-                    const updateCounter = () => {
-                        count += increment;
-                        if (count < target) {
-                            counter.textContent = Math.ceil(count);
-                            requestAnimationFrame(updateCounter);
-                        } else {
-                            counter.textContent = target.toLocaleString();
-                            observer.unobserve(counter);
+                    // Close all other items
+                    document.querySelectorAll('.accordion-content').forEach(item => {
+                        item.style.maxHeight = '0px';
+                        const prevIcon = item.previousElementSibling.querySelector('.accordion-icon');
+                        if (prevIcon) {
+                             prevIcon.classList.remove('rotate');
                         }
-                    };
-                    updateCounter();
-                }
+                    });
+
+                    // Open the clicked item if it was closed
+                    if (!isExpanded) {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        if (icon) {
+                            icon.classList.add('rotate');
+                        }
+                    }
+                });
             });
-        }, observerOptions);
 
-        counters.forEach(counter => {
-            observer.observe(counter);
+            // GSAP Animations
+            gsap.registerPlugin(ScrollTrigger);
+
+            gsap.from('.hero-title', { opacity: 0, y: -40, duration: 1.2, ease: "power4.out" });
+            gsap.from('.hero-subtitle', { opacity: 0, y: -30, duration: 1.2, ease: "power4.out", delay: 0.2 });
+            gsap.from('.hero-p', { opacity: 0, y: -20, duration: 1.2, ease: "power4.out", delay: 0.4 });
+            gsap.from('.hero-unis > div', { opacity: 0, y: 30, duration: 1, ease: "power2.out", stagger: 0.1, delay: 0.6 });
+
+            const animateUp = (elem) => {
+                 gsap.fromTo(elem, 
+                    { opacity: 0, y: 50 },
+                    { opacity: 1, y: 0, duration: 1, ease: "power2.out", 
+                      scrollTrigger: {
+                        trigger: elem,
+                        start: "top 85%",
+                        toggleActions: "play none none none"
+                      }
+                    });
+            };
+
+            document.querySelectorAll('section > div > h2, .modern-card, .faq-section > div').forEach(sectionEl => {
+                animateUp(sectionEl);
+            });
         });
-    });
-</script>
+    </script> -->
+</body>
 
+</html>

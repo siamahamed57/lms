@@ -129,223 +129,20 @@ if($is_ajax){
     <title>Courses | UNIES</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <style> 
-        /* --- Main Content Container & Header --- */
-.main-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    margin-top: 60px;
-}
-
-.page-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-}
-
-.page-header h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    padding-bottom: 0.5rem;
-}
-
-.page-header p {
-    color: var(--text-color-muted);
-    font-size: 1.125rem;
-}
-
-/* --- Horizontal Filter Bar (Glassmorphism) --- */
-.filter-bar {
-    background: var(--header-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--header-border);
-    border-radius: var(--border-radius-lg);
-    padding: 1rem;
-    margin-bottom: 2.5rem;
-    position: sticky;
-    top: 1rem;
-    z-index: 10;
-    box-shadow: 0 8px 32px 0 var(--shadow-color);
-    border-radius: 20px;
-}
-
-#filter-form {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-}
-
-.form-group {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1;
-}
-
-.form-group.search-group {
-    flex: 2; /* Make search bar wider */
-}
-
-.form-group i {
-    position: absolute;
-    left: 1rem;
-    color: var(--text-color-muted);
-    pointer-events: none;
-}
-
-#filter-form input, #filter-form select {
-    width: 100%;
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    color: var(--text-color);
-    border-radius: var(--border-radius-md);
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
-    transition: all var(--transition-speed) ease;
-    appearance: none; /* for select */
-    -webkit-appearance: none; /* for select */
-}
-
-#filter-form select {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.75rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-}
-
-#filter-form input:focus, #filter-form select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
-}
-
-/* --- Course Card Styling --- */
-#course-list-container {
-    transition: opacity var(--transition-speed) ease;
-}
-
-.card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    box-shadow: 0 4px 6px -1px var(--shadow-color);
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease;
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    border-radius: 20px;
-}
-
-.card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 25px -5px var(--shadow-color);
-    background-color: var(--card-hover-bg);
-}
-
-.card h3 {
-    color: var(--text-color);
-}
-
-.card p, .card span {
-    color: var(--text-color-muted);
-}
-
-.card .fas {
-    color: var(--primary-color);
-}
-
-.card .price {
-    color: var(--primary-color);
-    font-weight: 700;
-}
-
-.card .details-link {
-    font-weight: 500;
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color var(--transition-speed) ease;
-}
-
-.card .details-link:hover {
-    color: var(--primary-color-dark);
-    text-decoration: underline;
-}
-
-/* --- "No courses found" Message --- */
-.no-courses-found {
-    min-height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--card-bg);
-    border: 1px dashed var(--card-border);
-    border-radius: var(--border-radius-lg);
-    color: var(--text-color-muted);
-    font-size: 1.25rem;
-    border-radius: 20px;;
-}
-
-/* --- Pagination --- */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 2.5rem;
-    border-radius: 20px;
-}
-
-.pagination a {
-    text-decoration: none;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius-md);
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    color: var(--text-color);
-    transition: all var(--transition-speed) ease;
-    border-radius: 20px;
-}
-
-.pagination a:hover {
-    background-color: var(--card-hover-bg);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-
-.pagination a.active {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    color: #fff;
-    box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.39);
-}
-
-/* --- Responsive Design --- */
-@media (max-width: 768px) {
-    body {
-        padding: 1rem;
-    }
-
-    .page-header h1 {
-        font-size: 2rem;
-    }
-
-    #filter-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-
-</style>
+    <link rel="stylesheet" href="../assets/css/main.css"> <!-- Main stylesheet -->
+    <link rel="stylesheet" href="../assets/css/courses.css"> <!-- Page-specific modern styles -->
 </head>
-<body>
+<body class="courses-page">
+
+<!-- Animated background elements -->
+<div class="dot-grid-bg"></div>
+<div class="animated-overlay"></div>
 
 <div class="main-container">
-    <!-- <header class="page-header">
+    <header class="page-header">
         <h1 id="course_title_h1">Discover Your Next Course</h1>
         <p>Browse courses by university, department, or search for a specific topic.</p>
-    </header> -->
+    </header>
 
     <div class="filter-bar">
         <form id="filter-form">
@@ -385,28 +182,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('course-list-container');
     let debounce;
 
-    const fetchCourses = (page = null) => {
+    const fetchCourses = (page = 1) => {
         const data = new FormData(form);
-        if(page) data.set('page', page);
+        data.set('page', page);
+
+        // Create params for the URL bar (without is_ajax)
+        const urlParams = new URLSearchParams(data);
+        const url = `${window.location.pathname}?${urlParams.toString()}`;
+        window.history.pushState({path: url}, '', url);
+
+        // Add is_ajax for the fetch request
         data.set('is_ajax', 'true');
-        const params = new URLSearchParams(data);
+        const fetchParams = new URLSearchParams(data);
+        
         // Optional: Show a loading indicator
         container.style.opacity = '0.5';
-        fetch('pages/courses.php?' + params.toString(), {
+
+        fetch(`pages/courses.php?${fetchParams.toString()}`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(r => r.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
         .then(html => {
             container.innerHTML = html;
             container.style.opacity = '1';
         })
-        .catch(console.error);
+        .catch(error => {
+            console.error('Error fetching courses:', error);
+            container.innerHTML = '<div class="no-courses-found">Error loading courses. Please try again.</div>';
+            container.style.opacity = '1';
+        });
     };
 
-    form.addEventListener('submit', e => { e.preventDefault(); fetchCourses(); });
-    document.getElementById('search').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(() => fetchCourses(), 500); });
-    document.getElementById('university').addEventListener('change', () => fetchCourses());
-    document.getElementById('department').addEventListener('change', () => fetchCourses());
+    // Prevent form submission, as we handle it with JS
+    form.addEventListener('submit', e => e.preventDefault());
+
+    // Add event listeners to filters (reset to page 1 on change)
+    document.getElementById('search').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(() => fetchCourses(1), 500); });
+    document.getElementById('university').addEventListener('change', () => fetchCourses(1));
+    document.getElementById('department').addEventListener('change', () => fetchCourses(1));
 
     container.addEventListener('click', e => {
         const a = e.target.closest('.pagination a');

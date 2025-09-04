@@ -1,21 +1,34 @@
 <?php
 // index.php
-
+session_start();
 
 // Determine the requested page, default to 'home'
 $page = $_GET['page'] ?? 'home';
 
-// Include the header
-// Include the header
-include 'includes/header.php';
+// Pages where we **don't want header & footer**
+$dashboard_pages = [
+    'admin_dashboard',
+    'admin_users',
+    'admin_courses',
+    'instructor_dashboard',
+    'student_dashboard', // ✅ student_v1 page will NOT load header/footer
+];
 
+// Check if header/footer should be included
+$include_layout = !in_array($page, $dashboard_pages);
+
+// Include header only if needed
+if ($include_layout) {
+    include 'includes/header.php';
+}
+
+// Handle logout
 if ($page === 'logout') {
-    // Clear session
     $_SESSION = [];
     session_destroy();
 
     // Redirect to home
-
+    header("Location: index.php");
     exit;
 }
 
@@ -51,6 +64,7 @@ switch ($page) {
     case 'courses':
         include 'pages/courses.php';
         break;
+
     // Admin Pages
     case 'admin_dashboard':
         include 'admin/dashboard.php';
@@ -69,22 +83,25 @@ switch ($page) {
 
     // Student Pages
     case 'student_dashboard':
-        include 'student/dashboard.php';
+        include 'student/student_v1.php';
         break;
+
     case 'account':
         include 'pages/account.php';
         break;
-    case 'contact':
-        include 'pages/contact.php';
-        break;
-    default:
-        include 'pages/404.php';
-        break;
+    case 'register':
+            include 'pages/account.php';
+            break;
     case 'course_details':
         include './api/courses/detail.php';
         break;
 
+    default:
+        include 'pages/404.php';
+        break;
 }
 
-// Include the footer
-include 'includes/footer.php';
+// Include footer only if needed
+if ($include_layout) {
+    include 'includes/footer.php';
+}

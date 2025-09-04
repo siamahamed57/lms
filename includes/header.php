@@ -1,6 +1,6 @@
 <?php
 // Start the session to access session variables
-session_start();
+
 
 // Check login status and user role from the session
 $is_logged_in = $_SESSION['is_logged_in'] ?? false;
@@ -60,7 +60,7 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
                     <?php if ($is_logged_in): ?>
                         
                         <?php if ($user_role === 'admin'): ?>
-                            <li><a href="/admin/dashboard" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-tools mr-2 text-[#b915ff]"></i> Admin Dashboard</a></li>
+                            <li><a href="admin_dashboard" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-tools mr-2 text-[#b915ff]"></i> Admin Dashboard</a></li>
                             <li class="border-t border-gray-700"><a href="logout" class="block px-6 py-3 text-red-400 hover:bg-red-950 transition-colors duration-200"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a></li>
 
                         <?php elseif ($user_role === 'instructor'): ?>
@@ -69,10 +69,10 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
                             <li class="border-t border-gray-700"><a href="logout" class="block px-6 py-3 text-red-400 hover:bg-red-950 transition-colors duration-200"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a></li>
 
                         <?php elseif ($user_role === 'student'): ?>
-                            <li><a href="/student/dashboard" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-th-large mr-2 text-[#b915ff]"></i> Dashboard</a></li>
-                            <li><a href="/student/courses" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-book-open mr-2 text-[#60a5fa]"></i> Enrolled Courses</a></li>
-                            <li><a href="/student/certificates" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-award mr-2 text-yellow-500"></i> Certificates</a></li>
-                            <li><a href="/student/profile" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-cog mr-2 text-gray-400"></i> Profile Settings</a></li>
+                            <li><a href="student_v1" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-th-large mr-2 text-[#b915ff]"></i> Dashboard</a></li>
+                            <li><a href="student_courses" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-book-open mr-2 text-[#60a5fa]"></i> Enrolled Courses</a></li>
+                            <li><a href="student_certificates" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-award mr-2 text-yellow-500"></i> Certificates</a></li>
+                            <li><a href="student_profile" class="block px-6 py-3 text-card-color hover:bg-card-hover-bg transition-colors duration-200"><i class="fas fa-cog mr-2 text-gray-400"></i> Profile Settings</a></li>
                             <li class="border-t border-gray-700"><a href="logout" class="block px-6 py-3 text-red-400 hover:bg-red-950 transition-colors duration-200"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a></li>
 
                         <?php endif; ?>
