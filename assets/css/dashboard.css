@@ -1,0 +1,202 @@
+/*
+ * Styles for the main LMS Dashboard
+ */
+
+/* --- Theme Variables --- */
+:root, [data-theme="light"] {
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #374151;
+    --sidebar-text-hover: #111827;
+    --sidebar-bg-hover: #f3f4f6;
+    --sidebar-active-bg: #eef2ff;
+    --sidebar-active-text: #4f46e5;
+    --main-bg: #f9fafb;
+    --main-text: #111827;
+    --border-color: #e5e7eb;
+    --nav-section-title: #6b7280;
+    --placeholder-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+    --sidebar-bg: #111827;
+    --sidebar-text: #9ca3af;
+    --sidebar-text-hover: #f9fafb;
+    --sidebar-bg-hover: #1f2937;
+    --sidebar-active-bg: #3730a3;
+    --sidebar-active-text: #e0e7ff;
+    --main-bg: #030712; /* A bit darker than before */
+    --main-text: #c9d1d9;
+    --border-color: #30363d;
+    --nav-section-title: #6b7280;
+    --placeholder-bg: #111827;
+}
+
+/* --- Main Layout --- */
+
+
+/* --- Sidebar (reusing from previous response for consistency) --- */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-color);
+    transition: width 0.2s ease-in-out, transform 0.3s ease;
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.logo-link {
+    text-decoration: none;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--main-text);
+    letter-spacing: 1px;
+}
+
+[data-theme="dark"] .logo-text {
+    color: #fff;
+}
+
+.sidebar-nav {
+    flex-grow: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+}
+
+.nav-section-title {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--nav-section-title);
+    letter-spacing: 0.05em;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    margin: 0.25rem 0.75rem;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-radius: 6px;
+}
+
+.sidebar-nav li a:hover {
+    background-color: var(--sidebar-bg-hover);
+    color: var(--sidebar-text-hover);
+}
+
+.sidebar-nav li a.active {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    font-weight: 600;
+}
+
+.sidebar-nav li a i {
+    width: 20px;
+    margin-right: 1rem;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.sidebar-footer {
+    padding: 1rem;
+    margin: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.logout-link {
+    display: block;
+    text-align: center;
+    padding: 0.75rem;
+    background-color: var(--sidebar-bg-hover);
+    color: var(--sidebar-text-hover);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.logout-link:hover {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+}
+
+/* --- Main Content Area --- */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background-color: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.main-header .page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.content-wrapper {
+    padding: 2rem;
+}
+
+/* --- Placeholder Styles --- */
+.placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 60vh;
+    background-color: var(--placeholder-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+}
+.placeholder-icon {
+    font-size: 4rem;
+    color: var(--sidebar-active-text);
+    margin-bottom: 1.5rem;
+}
+.placeholder-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.placeholder-text {
+    color: var(--sidebar-text);
+    max-width: 450px;
+    line-height: 1.6;
+}

@@ -53,6 +53,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="./">
     <style>
         :root {
             --primary: #6366f1;
@@ -249,19 +250,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
             transform-origin: 50% 50%;
         }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(var(--primary), var(--secondary));
-            border-radius: 4px;
-        }
+       
 
         /* Accordion improvements */
         .accordion-item {
@@ -406,7 +395,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                         
                         <div class="text-center space-y-4">
                             <div class="text-4xl font-black gradient-text-primary">
-                                $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
+                                ৳<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                             </div>
                             <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
                                 <span class="relative z-10 flex items-center justify-center">
@@ -618,7 +607,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                     
                     <div class="text-center space-y-4">
                         <div class="text-5xl font-black gradient-text-primary">
-                            $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
+                            ৳<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                         </div>
                         <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
                             <span class="relative z-10 flex items-center justify-center">

@@ -120,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Firebase SDK - Corrected to use ES modules -->
     <script type="module" src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+     <link rel="stylesheet" href="./assets/css/webkit.css"> <!-- Main styles -->
 
     <style>
         :root,

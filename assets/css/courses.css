@@ -3,39 +3,45 @@
  * Inspired by Apple design, glassmorphism, and modern UI trends.
  */
 
-:root {
-    --page-bg: #0d1117; /* GitHub dark background */
+/* Light Theme (default) */
+:root, [data-theme="light"] {
+    --page-bg: #f6f8fa;
+    --card-bg: rgba(255, 255, 255, 0.6);
+    --card-border: rgba(210, 215, 220, 0.7);
+    --card-hover-bg: rgba(255, 255, 255, 0.8);
+    --glass-bg: rgba(255, 255, 255, 0.5);
+    --glass-border: rgba(210, 215, 220, 1);
+    --text-primary: #131518;
+    --text-secondary: #33363a;
+    --primary-accent: #b915ff;
+    --accent-ring: rgba(9, 105, 218, 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.07);
+    --dot-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --page-bg: #0d1117;
     --card-bg: rgba(22, 27, 34, 0.6);
     --card-border: rgba(48, 54, 61, 0.6);
     --card-hover-bg: rgba(30, 36, 44, 0.7);
     --glass-bg: rgba(22, 27, 34, 0.5);
     --glass-border: rgba(48, 54, 61, 0.8);
-    --text-primary: #c9d1d9;
-    --text-secondary: #8b949e;
-    --primary-accent: #58a6ff; /* GitHub blue */
+    --text-primary: #ffffff;
+    --text-secondary: #d1d2d4;
+     --primary-accent: #b915ff;
+    --accent-ring: rgba(88, 166, 255, 0.3);
     --shadow-color: rgba(0, 0, 0, 0.3);
-    --dot-color: rgba(48, 54, 61, 0.5);
-}
-
-/* This assumes the theme switcher adds a `data-theme="light"` attribute to the html tag */
-html[data-theme="light"] {
-    --page-bg: #f6f8fa;
-    --card-bg: rgba(255, 255, 255, 0.6);
-    --card-border: rgba(200, 205, 210, 0.8);
-    --card-hover-bg: rgba(255, 255, 255, 0.9);
-    --glass-bg: rgba(255, 255, 255, 0.5);
-    --glass-border: rgba(200, 205, 210, 1);
-    --text-primary: #24292f;
-    --text-secondary: #57606a;
-    --primary-accent: #0969da; /* GitHub blue for light mode */
-    --shadow-color: rgba(0, 0, 0, 0.05);
-    --dot-color: rgba(200, 205, 210, 0.7);
+    --dot-color: rgba(226, 227, 228, 0.5);
 }
 
 /* --- Base & Background --- */
 body.courses-page {
     background-color: var(--page-bg);
     color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
 }
 
@@ -57,8 +63,8 @@ body.courses-page {
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: radial-gradient(ellipse at 10% 20%, rgba(88, 166, 255, 0.1), transparent 50%),
-                radial-gradient(ellipse at 90% 80%, rgba(168, 85, 247, 0.1), transparent 50%);
+    background: radial-gradient(ellipse at 10% 20%, rgba(185, 21, 255, 0.1), transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(99, 102, 241, 0.1), transparent 50%);
     animation: subtle-breathing 15s ease-in-out infinite alternate;
 }
 
@@ -99,8 +105,8 @@ body.courses-page {
 /* --- Horizontal Filter Bar (Glassmorphism) --- */
 .filter-bar {
     background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: 1.25rem; /* 20px */
     padding: 1rem;
@@ -109,6 +115,7 @@ body.courses-page {
     top: 1rem;
     z-index: 10;
     box-shadow: 0 8px 32px 0 var(--shadow-color);
+    transition: all 0.3s ease;
 }
 
 #filter-form {
@@ -134,12 +141,13 @@ body.courses-page {
     left: 1rem;
     color: var(--text-secondary);
     pointer-events: none;
+    transition: color 0.2s ease;
 }
 
 #filter-form input, #filter-form select {
     width: 100%;
     background-color: transparent;
-    border: 1px solid transparent;
+    border: 1px solid var(--glass-border);
     color: var(--text-primary);
     border-radius: 0.75rem; /* 12px */
     padding: 0.75rem 1rem 0.75rem 2.75rem;
@@ -148,23 +156,35 @@ body.courses-page {
     -webkit-appearance: none;
 }
 
+#filter-form input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+#filter-form input:focus {
+    outline: none;
+    background-color: var(--card-bg);
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
 #filter-form select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.75rem center;
     background-repeat: no-repeat;
     background-size: 1.5em 1.5em;
+    padding-left: 1rem; /* Adjust padding for select */
 }
 
 html[data-theme="light"] #filter-form select {
-     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2357606a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2357606a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
 }
-
 
 #filter-form input:focus, #filter-form select:focus {
     outline: none;
-    background-color: var(--card-bg);
+    background-color: var(--card-hover-bg);
     border-color: var(--primary-accent);
-    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+    box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 /* --- Course Card Styling --- */
@@ -176,17 +196,20 @@ html[data-theme="light"] #filter-form select {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
     box-shadow: 0 4px 6px -1px var(--shadow-color);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
     border-radius: 1.25rem; /* 20px */
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1);
 }
 
 .card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 25px -5px var(--shadow-color), 0 0 0 1px var(--primary-accent);
+    transform: perspective(1000px) translateY(-10px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+    box-shadow: 0 20px 40px -5px var(--shadow-color), 0 0 0 1px var(--primary-accent);
     border-color: var(--primary-accent);
+    background-color: var(--card-hover-bg);
 }
 
 .card img {
@@ -201,10 +224,16 @@ html[data-theme="light"] #filter-form select {
 
 .card h3 {
     color: var(--text-primary);
+    transition: color 0.2s ease;
 }
 
 .card p, .card span, .card .fas {
     color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.card:hover h3, .card:hover .price {
+    color: var(--primary-accent);
 }
 
 .card .p-6 > div:last-child {
@@ -213,13 +242,15 @@ html[data-theme="light"] #filter-form select {
 
 .card .price {
     color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.5rem;
 }
 
 .card .details-link {
     font-weight: 600;
     color: var(--primary-accent);
     text-decoration: none;
-    transition: opacity 0.2s ease;
+    transition: all 0.2s ease;
     padding: 0.5rem 1rem;
     border-radius: 0.75rem;
     background-color: rgba(88, 166, 255, 0.1);
@@ -227,15 +258,17 @@ html[data-theme="light"] #filter-form select {
 }
 
 .card .details-link:hover {
-    opacity: 0.8;
+    opacity: 0.9;
     background-color: rgba(88, 166, 255, 0.2);
     border-color: var(--primary-accent);
+    transform: translateY(-2px);
 }
 
 /* --- "No courses found" Message --- */
 .no-courses-found {
     min-height: 300px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background-color: var(--card-bg);
@@ -243,6 +276,17 @@ html[data-theme="light"] #filter-form select {
     border-radius: 1.25rem;
     color: var(--text-secondary);
     font-size: 1.25rem;
+    padding: 2rem;
+}
+
+.no-courses-found::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f1b2"; /* fa-cube */
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    opacity: 0.5;
 }
 
 /* --- Pagination --- */
@@ -269,6 +313,7 @@ html[data-theme="light"] #filter-form select {
 .pagination a:hover {
     border-color: var(--primary-accent);
     color: var(--primary-accent);
+    background-color: var(--card-hover-bg);
 }
 
 .pagination a.active {
@@ -276,7 +321,7 @@ html[data-theme="light"] #filter-form select {
     border-color: var(--primary-accent);
     color: #fff;
     font-weight: 700;
-    box-shadow: 0 4px 14px 0 rgba(88, 166, 255, 0.39);
+    box-shadow: 0 4px 14px 0 rgba(185, 21, 255, 0.39);
 }
 
 /* --- Responsive Design --- */
@@ -308,6 +353,10 @@ html[data-theme="light"] #filter-form select {
         align-items: stretch;
         gap: 0.75rem;
     }
+    .filter-bar {
+        position: relative;
+        top: 0;
+    }
 }
 
 @media (max-width: 640px) {
@@ -318,3 +367,9 @@ html[data-theme="light"] #filter-form select {
         padding: 0.5rem 1rem;
     }
 }
+-webkit-backdrop-filter{
+    backdrop-filter: blur(20px);
+};
+  ::-webkit-scrollbar-track {
+            background: var(#0000);
+        }

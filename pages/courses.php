@@ -91,7 +91,7 @@ function render_course_list($courses, $current_page, $total_pages){
                             <span><?= htmlspecialchars($course['university_name']) ?></span>
                         </div>
                         <div class="flex justify-between items-center mt-4">
-                            <span class="text-lg font-bold price">$<?= number_format($course['price'], 2) ?></span>
+                            <span class="text-lg font-bold price">৳<?= number_format($course['price'], 2) ?></span>
                             <a href="course_details?id=<?= htmlspecialchars($course['id']) ?>" class="details-link">View Details</a>
                         </div>
                     </div>
@@ -127,10 +127,14 @@ if($is_ajax){
 <head>
     <meta charset="UTF-8">
     <title>Courses | UNIES</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/main.css"> <!-- Main stylesheet -->
-    <link rel="stylesheet" href="../assets/css/courses.css"> <!-- Page-specific modern styles -->
+    <link rel="stylesheet" href="./assets/css/courses.css"> <!-- Page-specific modern styles -->
+    <link rel="stylesheet" href="./assets/css/webkit.css"> <!-- Main styles -->
+  
 </head>
 <body class="courses-page">
 

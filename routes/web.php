@@ -11,7 +11,7 @@ $dashboard_pages = [
     'admin_users',
     'admin_courses',
     'instructor_dashboard',
-    'student_dashboard', // ✅ student_v1 page will NOT load header/footer
+    'dashboard', // ✅ student_v1 page will NOT load header/footer
 ];
 
 // Check if header/footer should be included
@@ -66,8 +66,8 @@ switch ($page) {
         break;
 
     // Admin Pages
-    case 'admin_dashboard':
-        include 'admin/dashboard.php';
+    case 'dashboard':
+        include 'pages/dashboard.php';
         break;
     case 'admin_users':
         include 'admin/users.php';
@@ -77,14 +77,9 @@ switch ($page) {
         break;
 
     // Instructor Pages
-    case 'instructor_dashboard':
-        include 'instructor/dashboard.php';
-        break;
+
 
     // Student Pages
-    case 'student_dashboard':
-        include 'student/student_v1.php';
-        break;
 
     case 'account':
         include 'pages/account.php';
@@ -94,6 +89,9 @@ switch ($page) {
             break;
     case 'course_details':
         include './api/courses/detail.php';
+        break;
+    case 'course_management':
+        include './api/courses/admin';
         break;
 
     default:

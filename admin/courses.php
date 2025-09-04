@@ -2,7 +2,7 @@
 // Path to the database connection file.
 require_once __DIR__ . '../../includes/db.php';
 session_start();
-
+include 'admin_sidebar.php';
 // Check if the user is logged in and has the 'admin' role.
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
     header('Location: ../../index.php?page=login_register');
