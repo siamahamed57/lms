@@ -1,74 +1,153 @@
 <?php
-// Check if user is logged in, if not, redirect to login page.
-// Assuming 'user_id' is set in the session upon successful login.
+
+
+// Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: account.php');
+    header("Location: pages/account.php");
     exit;
 }
 
-// Retrieve user details from session
-$user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['user_role'] ?? 'student'; // Default to 'student' if not set
-$user_name = $_SESSION['user_name'] ?? 'User'; // Default to 'User' if not set
+// Role
+$userRole = $_SESSION['user_role'] ?? 'student';
 
-// Determine which dashboard page to display. Default to 'overview'.
-$page = $_GET['page'] ?? 'overview';
+// Current section (from URL)
+$section = $_GET['page'] ?? 'overview';
 
-// A simple function to create a user-friendly title from the page slug
-function get_dashboard_title($role, $page) {
-    $page_title = htmlspecialchars(ucfirst(str_replace('-', ' ', $page)));
-    $role_title = ucfirst($role);
-    return "$page_title | $role_title Dashboard";
+// Menus
+$adminMenu = [
+    'overview' => ['icon' => 'fas fa-tachometer-alt', 'text' => 'Overview'],
+    'users' => ['icon' => 'fas fa-users-cog', 'text' => 'User Management'],
+    'courses' => ['icon' => 'fas fa-book', 'text' => 'Course Management'],
+    'create-course' => ['icon' => 'fas fa-plus', 'text' => 'Create Course'],
+    'instructors' => ['icon' => 'fas fa-chalkboard-teacher', 'text' => 'Instructor Management'],
+    'students' => ['icon' => 'fas fa-user-graduate', 'text' => 'Student Management'],
+    'content' => ['icon' => 'fas fa-file-alt', 'text' => 'Content & Assessments'],
+    'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Reporting & Analytics'],
+    'communication' => ['icon' => 'fas fa-bullhorn', 'text' => 'Communication'],
+    'settings' => ['icon' => 'fas fa-cogs', 'text' => 'System Settings'],
+    'misc' => ['icon' => 'fas fa-ellipsis-h', 'text' => 'Miscellaneous']
+];
+
+$instructorMenu = [
+    'overview' => ['icon' => 'fas fa-tachometer-alt', 'text' => 'Dashboard'],
+    'my-courses' => ['icon' => 'fas fa-book-open', 'text' => 'My Courses'],
+    'students' => ['icon' => 'fas fa-users', 'text' => 'Student Management'],
+    'assessments' => ['icon' => 'fas fa-tasks', 'text' => 'Assessments'],
+    'analytics' => ['icon' => 'fas fa-chart-line', 'text' => 'Analytics'],
+    'communication' => ['icon' => 'fas fa-comments', 'text' => 'Communication'],
+    'payouts' => ['icon' => 'fas fa-dollar-sign', 'text' => 'Monetization'],
+    'profile' => ['icon' => 'fas fa-user-edit', 'text' => 'Profile & Settings']
+];
+
+$studentMenu = [
+    'overview' => ['icon' => 'fas fa-home', 'text' => 'Dashboard'],
+    'my-courses' => ['icon' => 'fas fa-book-reader', 'text' => 'My Courses'],
+    'browse-courses' => ['icon' => 'fas fa-search', 'text' => 'Browse Courses'],
+    'grades' => ['icon' => 'fas fa-graduation-cap', 'text' => 'Grades & Feedback'],
+    'certificates' => ['icon' => 'fas fa-certificate', 'text' => 'My Certificates'],
+    'profile' => ['icon' => 'fas fa-user-cog', 'text' => 'Account & Profile'],
+    'support' => ['icon' => 'fas fa-question-circle', 'text' => 'Support']
+];
+
+// Active menu based on role
+$activeMenu = ($userRole === 'admin') ? $adminMenu : (($userRole === 'instructor') ? $instructorMenu : $studentMenu);
+
+// Function to generate sidebar links
+function generateNavLinks($menu, $section) {
+    $html = '';
+    foreach ($menu as $page => $details) {
+        $isActive = ($page === $section);
+        $html .= '<li class="nav-list-item">
+                    <a href="?page=' . $page . '" 
+                       data-section="' . $page . '" 
+                       class="nav-link ' . ($isActive ? 'active' : '') . '">
+                        <i class="' . $details['icon'] . ' nav-icon"></i>
+                        <span class="nav-text">' . $details['text'] . '</span>
+                    </a>
+                  </li>';
+    }
+    return $html;
 }
-
 ?>
+
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= get_dashboard_title($user_role, $page) ?> | UNIES</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="./assets/css/dashboard.css">
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <style>
+    .dashboard-section { display: none; }
+    .dashboard-section.active { display: block; }
+  </style>
 </head>
-<body class="dashboard-body">
+<body>
+<div class="dashboard-wrapper">
 
-    <?php include __DIR__ . '/../includes/sidebar.php'; ?>
+  <!-- Sidebar -->
+  <aside class="sidebar-desktop">
+    <nav>
+      <ul class="nav-list">
+        <?= generateNavLinks($activeMenu, $section) ?>
+      </ul>
+    </nav>
+  </aside>
 
-    <main class="main-content">
-        <header class="main-header">
-            <h2 class="page-title"><?= htmlspecialchars(ucfirst(str_replace('-', ' ', $page))) ?></h2>
-            <div class="user-info">
-                <div class="welcome-message">
-                    Welcome, <span class="font-semibold"><?= htmlspecialchars($user_name) ?></span>!
-                </div>
-                <!-- You can add a theme switcher or profile dropdown here if needed -->
-            </div>
-        </header>
+  <!-- Content Sections -->
+  <main class="dashboard-content">
+    <section id="overview" class="dashboard-section <?= ($section==='overview')?'active':'' ?>">
+      <?php include __DIR__ . "/templates/overview.php"; ?>
+    </section>
 
-        <div class="content-wrapper">
-            <?php
-            // This is a simple router to display content.
-            // For a real application, you would create separate files for each page
-            // and include them here to keep your code organized and manageable.
-            // Example: include __DIR__ . "/dashboard_pages/{$user_role}/{$page}.php";
-            ?>
-            <div class="placeholder-content">
-                <i class="fas fa-cogs placeholder-icon"></i>
-                <h3 class="placeholder-title">Under Construction</h3>
-                <p class="placeholder-text">
-                    The '<?= htmlspecialchars(ucfirst(str_replace('-', ' ', $page))) ?>' section is currently being developed.
-                    <br>
-                    Check back soon for updates!
-                </p>
-            </div>
-        </div>
-    </main>
+    <section id="create-course" class="dashboard-section <?= ($section==='create-course')?'active':'' ?>">
+      <?php include __DIR__ . "/../api/courses/create-course.php"; ?>
+    </section>
 
-    <script src="../assets/js/main.js"></script>
+    <section id="users" class="dashboard-section <?= ($section==='users')?'active':'' ?>">
+      <?php include __DIR__ . "/../api/users/user-management.php"; ?>
+    </section>
+
+    <!-- আরও section add করবেন এখানে একইভাবে -->
+  </main>
+</div>
+
+<script>
+  // Handle clicks (AJAX-like switching without reload)
+  document.querySelectorAll(".nav-link").forEach(link => {
+    link.addEventListener("click", function(e){
+      e.preventDefault();
+      let target = this.getAttribute("data-section");
+
+      // hide all
+      document.querySelectorAll(".dashboard-section").forEach(sec => sec.classList.remove("active"));
+
+      // show selected
+      document.getElementById(target).classList.add("active");
+
+      // update sidebar
+      document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+      this.classList.add("active");
+
+      // update URL (so refresh works)
+      history.pushState({section: target}, "", "?page=" + target);
+    });
+  });
+
+  // Handle back/forward buttons
+  window.addEventListener("popstate", function(e){
+    let section = e.state?.section || "overview";
+
+    // hide all
+    document.querySelectorAll(".dashboard-section").forEach(sec => sec.classList.remove("active"));
+
+    // show correct
+    document.getElementById(section).classList.add("active");
+
+    // update sidebar
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+    document.querySelector('[data-section="'+section+'"]').classList.add("active");
+  });
+</script>
+
 </body>
 </html>

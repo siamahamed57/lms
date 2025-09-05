@@ -11,7 +11,8 @@ $dashboard_pages = [
     'admin_users',
     'admin_courses',
     'instructor_dashboard',
-    'dashboard', // ✅ student_v1 page will NOT load header/footer
+    'dashboard',
+    'my-courses', // ✅ student_v1 page will NOT load header/footer
 ];
 
 // Check if header/footer should be included
@@ -77,7 +78,9 @@ switch ($page) {
         break;
 
     // Instructor Pages
-
+     case 'my-courses':
+        include 'student/my_courses.php';
+        break;
 
     // Student Pages
 
@@ -93,7 +96,7 @@ switch ($page) {
     case 'course_management':
         include './api/courses/admin';
         break;
-
+    
     default:
         include 'pages/404.php';
         break;
