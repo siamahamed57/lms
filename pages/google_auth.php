@@ -67,7 +67,7 @@ $user = $result->fetch_assoc();
 $stmt->close();
 
 // --- DEFAULT REDIRECT ---
-$redirect_page = 'student_dashboard';
+$redirect_page = 'dashboard';
 
 if ($user) {
     // User exists, log them in
@@ -77,7 +77,7 @@ if ($user) {
     $_SESSION['user_role'] = $user['role'];
     $_SESSION['is_logged_in'] = true;
 
-    $redirect_page = $user['role'] . 'dashboard';
+    $redirect_page = 'dashboard';
 } else {
     // New user, register them
     $role = 'student'; // Default role for new Google sign-ups
@@ -91,7 +91,7 @@ if ($user) {
         $_SESSION['user_role'] = $role;
         $_SESSION['is_logged_in'] = true;
 
-        $redirect_page = $role . 'dashboard';
+        $redirect_page = $role . '_dashboard';
     } else {
         echo json_encode(['error' => 'Database error during registration.']);
         exit;
@@ -100,5 +100,5 @@ if ($user) {
 }
 
 // --- RETURN JSON RESPONSE ---
-echo json_encode(['redirect' => '' . $redirect_page]);
+echo json_encode(['redirect' => 'dashboard']);
 exit;

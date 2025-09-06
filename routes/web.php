@@ -11,7 +11,10 @@ $dashboard_pages = [
     'admin_courses',
     'instructor_dashboard',
     'dashboard',
+    'logout',
+    'account',
     'my-courses'
+    
 ];
 
 // Layout?
@@ -22,16 +25,11 @@ if ($include_layout) {
     include 'includes/header.php';
 }
 
-// Logout
-if ($route === 'logout') {
-    $_SESSION = [];
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
 
 // Router
 switch ($route) {
+
+    //pages
     case 'home':
         include 'pages/home.php';
         break;
@@ -67,11 +65,11 @@ switch ($route) {
     case 'dashboard':
         include 'pages/dashboard.php';
         break;
-    case 'admin_users':
-        include 'admin/users.php';
+    case 'logout':
+        include 'api/auth/logout.php';
         break;
-    case 'admin_courses':
-        include 'admin/courses.php';
+    case 'login':
+        include 'api/auth/login.php';
         break;
 
     // Instructor

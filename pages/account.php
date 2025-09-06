@@ -1,14 +1,14 @@
 <?php
-// Path to the database connection file.
-require_once __DIR__ . '../../includes/db.php';
+ob_start(); // Start output buffering
 
-// Redirect to dashboard if the user is already logged in.
+require_once __DIR__ . '../../includes/db.php';
+require_once __DIR__ . '../../includes/header.php';
+
+// Redirect to dashboard if the user is already logged in
 if (isset($_SESSION['user_id'])) {
-    header('Location: ../../index.php?page=' . $_SESSION['user_role'] . '_dashboard');
+    header('Location: dashboard');
     exit;
 }
-
-
 
 // Initialize messages
 $message = '';
@@ -16,12 +16,12 @@ $message_type = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle Registration
+    // Registration
     if (isset($_POST['register'])) {
         $name = trim($_POST['name']);
         $email = trim($_POST['email']);
         $password = $_POST['password'];
-        $role = $_POST['role'] ?? 'student'; // Default to student
+        $role = $_POST['role'] ?? 'student';
 
         if (empty($name) || empty($email) || empty($password)) {
             $message = 'All fields are required for registration.';
@@ -30,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Invalid email format.';
             $message_type = 'error';
         } else {
-            // Check if email already exists
             $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->bind_param("s", $email);
             $stmt->execute();
@@ -41,26 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-                // Insert into users
                 $stmt_insert = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
                 $stmt_insert->bind_param("ssss", $name, $email, $hashed_password, $role);
 
                 if ($stmt_insert->execute()) {
-                    $user_id = $stmt_insert->insert_id;
-                    $stmt_insert->close();
-
                     $message = 'Registration successful! You can now log in.';
                     $message_type = 'success';
                 } else {
                     $message = 'Registration failed. Please try again.';
                     $message_type = 'error';
                 }
+                $stmt_insert->close();
             }
             $stmt->close();
         }
 
-        // Handle Login
+    // Login
     } elseif (isset($_POST['login'])) {
         $email = trim($_POST['email']);
         $password = $_POST['password'];
@@ -72,8 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE email = ?");
             $stmt->bind_param("s", $email);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $user = $result->fetch_assoc();
+            $user = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
             if ($user && password_verify($password, $user['password'])) {
@@ -83,21 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_role'] = $user['role'];
                 $_SESSION['is_logged_in'] = true;
 
-                // Redirect based on role
-                switch ($user['role']) {
-                    case 'admin':
-                        header('Location: ../../index.php?page=admin_dashboard');
-                        break;
-                    case 'instructor':
-                        header('Location: ../../index.php?page=instructor_dashboard');
-                        break;
-                    case 'student':
-                        header('Location: ../../index.php?page=student_dashboard');
-                        break;
-                    default:
-                        header('Location: ../../index.php?page=home');
-                        break;
-                }
+                header('Location: dashboard');
                 exit;
             } else {
                 $message = 'Invalid email or password.';
@@ -106,7 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+ob_end_flush(); // Flush output at the very end
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -362,3 +344,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
+
+
+
+<?php require_once __DIR__ . '../../includes/footer.php'; ?>

@@ -121,19 +121,19 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
 
             <?php if ($user_role === 'admin'): ?> 
                 <li><a href="dashboard.php" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-tools mr-3 text-sm text-[#b915ff]"></i> Admin Dashboard</a></li> 
-                <li><a href="/logout" class="block text-red-400 hover:text-red-300 font-medium transition-colors duration-200"><i class="fas fa-sign-out-alt mr-3 text-sm"></i> Logout</a></li> 
+                <li><a href="logout" class="block text-red-400 hover:text-red-300 font-medium transition-colors duration-200"><i class="fas fa-sign-out-alt mr-3 text-sm"></i> Logout</a></li> 
 
             <?php elseif ($user_role === 'instructor'): ?> 
                 <li><a href="dashboard.php" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-chalkboard-teacher mr-3 text-sm text-[#b915ff]"></i> Dashboard</a></li> 
                 <li><a href="dashboard.php?page=my-courses" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-book mr-3 text-sm text-[#60a5fa]"></i> My Courses</a></li> 
-                <li><a href="/logout" class="block text-red-400 hover:text-red-300 font-medium transition-colors duration-200"><i class="fas fa-sign-out-alt mr-3 text-sm"></i> Logout</a></li> 
+                <li><a href="logout" class="block text-red-400 hover:text-red-300 font-medium transition-colors duration-200"><i class="fas fa-sign-out-alt mr-3 text-sm"></i> Logout</a></li> 
 
             <?php else: // Default to student if role is not admin or instructor ?> 
                 <li><a href="dashboard.php" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-th-large mr-3 text-sm text-[#b915ff]"></i> Dashboard</a></li> 
                 <li><a href="dashboard.php?page=my-courses" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-book-open mr-3 text-sm text-[#60a5fa]"></i> Enrolled Courses</a></li> 
                 <li><a href="dashboard.php?page=certificates" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-award mr-3 text-sm text-yellow-500"></i> Certificates</a></li> 
                 <li><a href="dashboard.php?page=profile" class="block text-card-color hover:text-[#b915ff] font-medium transition-colors duration-200"><i class="fas fa-cog mr-3 text-sm text-gray-400"></i> Profile Settings</a></li> 
-                <li><a href="/logout" class="block text-red-400 hover:text-red-300 font-medium transition-colors duration-200"><i class="fas fa-sign-out-alt mr-3 text-sm"></i> Logout</a></li> 
+                <li><a href="logout" class="block text-red-400 hover:text-red-300 font-medium transition-colors duration-200"><i class="fas fa-sign-out-alt mr-3 text-sm"></i> Logout</a></li> 
             <?php endif; ?> 
 
         <?php else: // User is not logged in ?> 
