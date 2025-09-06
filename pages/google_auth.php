@@ -77,7 +77,7 @@ if ($user) {
     $_SESSION['user_role'] = $user['role'];
     $_SESSION['is_logged_in'] = true;
 
-    $redirect_page = $user['role'] . '_dashboard';
+    $redirect_page = $user['role'] . 'dashboard';
 } else {
     // New user, register them
     $role = 'student'; // Default role for new Google sign-ups
@@ -91,7 +91,7 @@ if ($user) {
         $_SESSION['user_role'] = $role;
         $_SESSION['is_logged_in'] = true;
 
-        $redirect_page = $role . '_dashboard';
+        $redirect_page = $role . 'dashboard';
     } else {
         echo json_encode(['error' => 'Database error during registration.']);
         exit;

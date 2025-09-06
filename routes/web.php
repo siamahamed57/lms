@@ -1,40 +1,37 @@
 <?php
-// index.php
 session_start();
 
-// Determine the requested page, default to 'home'
-$page = $_GET['page'] ?? 'home';
+// Routing param
+$route = $_GET['_page'] ?? 'home';
 
-// Pages where we **don't want header & footer**
+// Reserved dashboard pages
 $dashboard_pages = [
     'admin_dashboard',
     'admin_users',
     'admin_courses',
     'instructor_dashboard',
     'dashboard',
-    'my-courses', // ✅ student_v1 page will NOT load header/footer
+    'my-courses'
 ];
 
-// Check if header/footer should be included
-$include_layout = !in_array($page, $dashboard_pages);
+// Layout?
+$include_layout = !in_array($route, $dashboard_pages);
 
-// Include header only if needed
+// Include header
 if ($include_layout) {
     include 'includes/header.php';
 }
 
-// Handle logout
-if ($page === 'logout') {
+// Logout
+if ($route === 'logout') {
     $_SESSION = [];
     session_destroy();
-
-    // Redirect to home
     header("Location: index.php");
     exit;
 }
 
-// Routing
-switch ($page) {
+// Router
+switch ($route) {
     case 'home':
         include 'pages/home.php';
         break;
@@ -77,24 +74,21 @@ switch ($page) {
         include 'admin/courses.php';
         break;
 
-    // Instructor Pages
-     case 'my-courses':
+    // Instructor
+    case 'my-courses':
         include 'student/my_courses.php';
         break;
 
-    // Student Pages
-
+    // Student
     case 'account':
+    case 'register':
         include 'pages/account.php';
         break;
-    case 'register':
-            include 'pages/account.php';
-            break;
     case 'course_details':
         include './api/courses/detail.php';
         break;
     case 'course_management':
-        include './api/courses/admin';
+        include './api/courses/admin.php';
         break;
     case 'enroll':
         include './api/enrollments/enroll.php';
@@ -110,19 +104,20 @@ switch ($page) {
         break;
     case 'quiz':
         include './api/quizzes/quiz.php';
-        break;      
+        break;
     case 'take_quiz':
         include './api/quizzes/take_quiz.php';
         break;
     case 'submit_quiz':
         include './api/quizzes/submit_quiz.php';
         break;
+
     default:
         include 'pages/404.php';
         break;
 }
 
-// Include footer only if needed
+// Footer
 if ($include_layout) {
     include 'includes/footer.php';
 }
