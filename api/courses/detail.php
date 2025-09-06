@@ -397,12 +397,15 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                             <div class="text-4xl font-black gradient-text-primary">
                                 ৳<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                             </div>
-                            <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
-                                <span class="relative z-10 flex items-center justify-center">
-                                    <i class="fas fa-play mr-2"></i>
-                                    Enroll Now
-                                </span>
-                            </button>
+                            <a href="enroll?course_id=<?= $course_id ?>">
+                                <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
+                                    <span class="relative z-10 flex items-center justify-center">
+                                        <i class="fas fa-play mr-2"></i>
+                                        Enroll Now
+                                    </span>
+                                </button>
+                            </a>
+
                             <div class="flex items-center justify-center text-sm text-gray-400">
                                 <i class="fas fa-shield-alt text-green-400 mr-2"></i>
                                 30-day money-back guarantee

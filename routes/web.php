@@ -96,7 +96,27 @@ switch ($page) {
     case 'course_management':
         include './api/courses/admin';
         break;
-    
+    case 'enroll':
+        include './api/enrollments/enroll.php';
+        break;
+    case 'my_courses':
+        include './api/enrollments/my_courses.php';
+        break;
+    case 'progress':
+        include './api/enrollments/progress.php';
+        break;
+    case 'lesson':
+        include './api/lessons/lesson.php';
+        break;
+    case 'quiz':
+        include './api/quizzes/quiz.php';
+        break;      
+    case 'take_quiz':
+        include './api/quizzes/take_quiz.php';
+        break;
+    case 'submit_quiz':
+        include './api/quizzes/submit_quiz.php';
+        break;
     default:
         include 'pages/404.php';
         break;

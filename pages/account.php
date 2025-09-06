@@ -8,6 +8,8 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
+
+
 // Initialize messages
 $message = '';
 $message_type = '';
