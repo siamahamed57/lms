@@ -212,15 +212,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Lesson - LMS</title>
-    <!-- TinyMCE Rich Text Editor -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-    <style>
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<style>
         :root {
             --primary-color: #8b5cf6;
             --primary-light: #a78bfa;
@@ -316,8 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .content-panel { display: none; border-left: 3px solid var(--primary-color); padding-left: 1rem; margin-top: 1rem; }
         .content-panel.active { display: block; }
     </style>
-</head>
-<body>
+
     <div class="app-container">
         <div class="form-header">
             <h1>Create a New Lesson</h1>
@@ -470,5 +463,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             contentRadios.forEach(radio => radio.addEventListener('change', switchPanel));
         });
     </script>
-</body>
-</html>

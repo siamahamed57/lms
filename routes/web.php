@@ -87,9 +87,13 @@ switch ($route) {
     case 'manage':
         include 'api/courses/manage.php';
         break;
+    case 'create-course':
+        include 'api/courses/create.php';
+        break;
 
-
-
+    case 'create-lessons':
+        include 'api/lessons/create.php';
+        break;
 
 
     // Student

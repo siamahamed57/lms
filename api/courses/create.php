@@ -15,7 +15,6 @@ if ($userRole !== 'admin' && $userRole !== 'instructor') {
     echo "<h2 style='color:red; text-align:center; margin-top:50px;'>❌ Access Denied!<br>Only Admin or Instructor can access this page.</h2>";
     exit;
 }
-$activeMenu = ($userRole === 'admin') ? $adminMenu : (($userRole === 'instructor') ? $instructorMenu : $studentMenu);
 $errors = [];
 $success = '';
 

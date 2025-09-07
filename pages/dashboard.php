@@ -1,4 +1,32 @@
 <?php
+// --- AJAX Request Handler ---
+// If 'ajax' param is set, only render the requested section and exit.
+if (isset($_GET['ajax'])) {
+    // Need to set up session and role check again for direct AJAX calls
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(401); // Unauthorized
+        echo "<h2>Session expired. Please log in again.</h2>";
+        exit;
+    }
+    
+    $section = $_GET['page'] ?? 'overview';
+    $page_map = [
+        'overview' => __DIR__ . "/../api/templates/overview.php",
+        'create-course' => __DIR__ . "/../api/courses/create.php",
+        'manage' => __DIR__ . "/../api/courses/manage.php",
+        'create-lesson' => __DIR__ . "/../api/lessons/create.php",
+        'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
+        'users' => __DIR__ . "/../api/users/user-management.php",
+    ];
+    $page_path = $page_map[$section] ?? '';
+    if ($page_path && file_exists($page_path)) { include $page_path; } 
+    else { echo "<h2>Content not found.</h2>"; }
+    exit; // IMPORTANT: Stop execution after sending the content fragment.
+}
+
 // --- Pre-render Logic ---
 // Handle form submissions for included pages before any HTML is output.
 $section = $_GET['page'] ?? 'overview';
@@ -123,6 +151,14 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <style>
+        /* Style for page transitions */
+        body.is-transitioning {
+            opacity: 0 !important;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        }
+    </style>
 </head>
 <body>
     <!-- Animated Background Particles -->
@@ -167,10 +203,10 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                 </div>
             </div>
 
-            <div class="time-display">
+            <!-- <div class="time-display">
                 <div class="current-time" id="currentTime"></div>
                 <div class="current-date" id="currentDate"></div>
-            </div>
+            </div> -->
 
             <nav>
                 <ul class="nav-list">
@@ -182,123 +218,36 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
         <!-- Main Content -->
         <main class="main-content">
 
-            <div class="content-body">
-                <!-- Overview Section -->
-                <section id="overview" class="dashboard-section <?= ($section==='overview')?'active':'' ?>">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-value">12,847</div>
-                            <div class="stat-label">Total Students</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-book-open"></i>
-                            </div>
-                            <div class="stat-value">256</div>
-                            <div class="stat-label">Active Courses</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-award"></i>
-                            </div>
-                            <div class="stat-value">8,942</div>
-                            <div class="stat-label">Certificates</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="stat-value">97.8%</div>
-                            <div class="stat-label">Success Rate</div>
-                        </div>
-                    </div>
-                    <?php 
+            <div class="content-body" style="opacity: 1; transform: translateY(0px); transition: opacity 0.3s ease-out, transform 0.3s ease-out;">
+                <?php
+                // This code only runs on a full page load. AJAX calls are handled at the top.
+                $page_map = [
+                    'overview' => __DIR__ . "/../api/templates/overview.php",
+                    'create-course' => __DIR__ . "/../api/courses/create.php",
+                    'manage' => __DIR__ . "/../api/courses/manage.php",
+                    'create-lesson' => __DIR__ . "/../api/lessons/create.php",
+                    'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
+                    'users' => __DIR__ . "/../api/users/user-management.php",
+                ];
+                $page_path = $page_map[$section] ?? '';
+
+                if ($page_path && file_exists($page_path)) {
+                    include $page_path;
+                } else {
+                    // Default/fallback content for overview or not found pages
+                    echo '<section id="overview" class="dashboard-section active">';
+                    echo '<div class="stats-grid">
+                            <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value">12,847</div><div class="stat-label">Total Students</div></div>
+                            <div class="stat-card"><div class="stat-icon"><i class="fas fa-book-open"></i></div><div class="stat-value">256</div><div class="stat-label">Active Courses</div></div>
+                            <div class="stat-card"><div class="stat-icon"><i class="fas fa-award"></i></div><div class="stat-value">8,942</div><div class="stat-label">Certificates</div></div>
+                            <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value">97.8%</div><div class="stat-label">Success Rate</div></div>
+                        </div>';
                     if (file_exists(__DIR__ . "/../api/templates/overview.php")) {
                         include __DIR__ . "/../api/templates/overview.php"; 
                     }
-                    ?>
-                </section>
-
-                <!-- Create Course Section -->
-                <section id="create-course" class="dashboard-section <?= ($section==='create-course')?'active':'' ?>">
-                    <div class="stats-grid">
-                       
-                    </div>
-                    <?php 
-                    if (file_exists(__DIR__ . "/../api/courses/create.php")) {
-                        include __DIR__ . "/../api/courses/create.php"; 
-                    }
-                    ?>
-                </section>
-
-             <section id="manage" class="dashboard-section <?= ($section==='manage')?'active':'' ?>">
-                    <div class="stats-grid">
-                       
-                    </div>
-                    <?php 
-                    if (file_exists(__DIR__ . "/../api/courses/manage.php")) {
-                        include __DIR__ . "/../api/courses/manage.php"; 
-                    }
-                    ?>
-                </section>
-
-                 <section id="create-lesson" class="dashboard-section <?= ($section==='create-lesson')?'active':'' ?>">
-                    <div class="stats-grid">
-                       
-                    </div>
-                    <?php 
-                    if (file_exists(__DIR__ . "/../api/lessons/create.php")) {
-                        include __DIR__ . "/../api/lessons/create.php"; 
-                    }
-                    ?>
-                </section>
-
-                <section id="manage-lessons" class="dashboard-section <?= ($section==='manage-lessons')?'active':'' ?>">
-                    <div class="stats-grid">
-                       
-                    </div>
-                    <?php 
-                    if (file_exists(__DIR__ . "/../api/lessons/manage.php")) {
-                        include __DIR__ . "/../api/lessons/manage.php"; 
-                    }
-                    ?>
-                </section>
-
-
-               <section id="edit" class="dashboard-section <?= ($section==='edit')?'active':'' ?>">
-                    <div class="stats-grid">
-                       
-                    </div>
-                    <?php 
-                    if (file_exists(__DIR__ . "/../api/courses/update.php")) {
-                        include __DIR__ . "/../api/courses/update.php"; 
-                    }
-                    ?>
-                </section>
-                
-                <!-- User Management Section -->
-                <section id="users" class="dashboard-section <?= ($section==='users')?'active':'' ?>">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-users-cog"></i>
-                            </div>
-                            <div class="stat-value">Admin</div>
-                            <div class="stat-label">User Control</div>
-                        </div>
-                    </div>
-                    <?php 
-                    if (file_exists(__DIR__ . "/../api/users/user-management.php")) {
-                        include __DIR__ . "/../api/users/user-management.php"; 
-                    }
-                    ?>
-                </section>
-
-                <!-- Generate sections for all other menu items -->
-               
+                    echo '</section>';
+                }
+                ?>
             </div>
         </main>
     </div>
@@ -379,120 +328,86 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
             });
         }
 
-        // Enhanced navigation handling
         function initNavigation() {
             const allNavLinks = document.querySelectorAll(".nav-link, .mobile-nav-item");
-            
+            const contentBody = document.querySelector('.content-body');
+            const contentTitle = document.getElementById('contentTitle'); // Assuming you have this element
+            const activeMenu = <?= json_encode($activeMenu) ?>;
+
+            const loadContent = (url, pushState = true) => {
+                const mainContent = document.querySelector('.main-content');
+                mainContent.classList.add('is-transitioning');
+
+                fetch(url + (url.includes('?') ? '&' : '?') + 'ajax=true')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(html => {
+                        setTimeout(() => {
+                            contentBody.innerHTML = html;
+
+                            if (pushState) {
+                                history.pushState({ path: url }, '', url);
+                            }
+
+                            // Update page title
+                            const urlParams = new URL(url, window.location.origin);
+                            const page = urlParams.searchParams.get('page') || 'overview';
+                            const menuItem = activeMenu[page];
+                            if (menuItem && contentTitle) {
+                                contentTitle.textContent = menuItem.text;
+                                contentTitle.setAttribute('data-text', menuItem.text);
+                            }
+
+                            // Re-initialize any scripts within the new content
+                            const scripts = contentBody.querySelectorAll('script');
+                            scripts.forEach(oldScript => {
+                                const newScript = document.createElement('script');
+                                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                oldScript.parentNode.replaceChild(newScript, oldScript);
+                            });
+
+                            mainContent.classList.remove('is-transitioning');
+                        }, 200);
+                    })
+                    .catch(error => {
+                        console.error('Failed to load page content:', error);
+                        contentBody.innerHTML = `<div class='text-center p-8'><h2 class='text-2xl font-bold text-red-600'>❌ Error loading content.</h2><p class='text-gray-400'>Please try again or refresh the page.</p></div>`;
+                        mainContent.classList.remove('is-transitioning');
+                    });
+            };
+
             allNavLinks.forEach(link => {
-                // Add ripple effect to desktop nav
-                if (link.classList.contains('nav-link')) {
-                    link.addEventListener('click', createRipple);
-                }
-                
                 link.addEventListener("click", function(e) {
                     e.preventDefault();
-                    let target = this.getAttribute("data-section");
+                    const targetUrl = this.href;
 
-                    // Hide all sections with fade out
-                    document.querySelectorAll(".dashboard-section").forEach(sec => {
-                        sec.style.opacity = '0';
-                        sec.style.transform = 'translateY(20px)';
-                        setTimeout(() => {
-                            sec.classList.remove("active");
-                        }, 300);
-                    });
-
-                    // Show selected section with fade in
-                    setTimeout(() => {
-                        const targetSection = document.getElementById(target);
-                        if (targetSection) {
-                            targetSection.classList.add("active");
-                            setTimeout(() => {
-                                targetSection.style.opacity = '1';
-                                targetSection.style.transform = 'translateY(0)';
-                            }, 50);
-                        }
-                    }, 300);
-
-                    // Update sidebar active state
-                    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
-                    document.querySelectorAll(".mobile-nav-item").forEach(l => l.classList.remove("active"));
-                    
-                    const desktopLink = document.querySelector('.nav-link[data-section="'+target+'"]');
-                    const mobileLink = document.querySelector('.mobile-nav-item[data-section="'+target+'"]');
-                    
-                    if (desktopLink) desktopLink.classList.add("active");
-                    if (mobileLink) mobileLink.classList.add("active");
-
-                    // Update page title with glitch effect
-                    const contentTitle = document.getElementById('contentTitle');
-                    const activeMenu = <?= json_encode($activeMenu) ?>;
-                    const menuItem = activeMenu[target];
-                    
-                    if (menuItem && contentTitle) {
-                        contentTitle.style.opacity = '0';
-                        setTimeout(() => {
-                            contentTitle.textContent = menuItem.text;
-                            contentTitle.setAttribute('data-text', menuItem.text);
-                            contentTitle.style.opacity = '1';
-                        }, 200);
+                    if (window.location.href === targetUrl) {
+                        return;
                     }
 
-                    // Update URL
-                    history.pushState({section: target}, "", "?page=" + target);
+                    // Update active link style immediately
+                    allNavLinks.forEach(l => l.classList.remove('active'));
+                    const section = this.dataset.section;
+                    document.querySelector(`.nav-link[data-section="${section}"]`)?.classList.add('active');
+                    document.querySelector(`.mobile-nav-item[data-section="${section}"]`)?.classList.add('active');
+
+                    loadContent(targetUrl);
                 });
             });
-        }
 
-        // Floating Action Button
-        function initFAB() {
-            const fab = document.getElementById('fab');
-            let rotation = 0;
-            
-            fab.addEventListener('click', function() {
-                rotation += 45;
-                this.style.transform = `translateY(-4px) scale(1.1) rotate(${rotation}deg)`;
-                
-                // Add some sparkle effect
-                for (let i = 0; i < 6; i++) {
-                    const sparkle = document.createElement('div');
-                    sparkle.style.cssText = `
-                        position: absolute;
-                        width: 4px;
-                        height: 4px;
-                        background: #b915ff;
-                        border-radius: 50%;
-                        pointer-events: none;
-                        z-index: 1000;
-                    `;
-                    
-                    const rect = this.getBoundingClientRect();
-                    sparkle.style.left = (rect.left + rect.width/2) + 'px';
-                    sparkle.style.top = (rect.top + rect.height/2) + 'px';
-                    
-                    document.body.appendChild(sparkle);
-                    
-                    const angle = (i / 6) * Math.PI * 2;
-                    const distance = 50;
-                    
-                    sparkle.animate([
-                        { 
-                            transform: 'translate(0, 0) scale(1)', 
-                            opacity: 1 
-                        },
-                        { 
-                            transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`, 
-                            opacity: 0 
-                        }
-                    ], {
-                        duration: 800,
-                        easing: 'ease-out'
-                    }).onfinish = () => sparkle.remove();
-                }
-                
-                setTimeout(() => {
-                    this.style.transform = `translateY(-4px) scale(1.1) rotate(${rotation}deg)`;
-                }, 100);
+            window.addEventListener("popstate", function(e) {
+                const path = e.state ? e.state.path : window.location.href;
+                loadContent(path, false);
+
+                // Update active link on popstate
+                const urlParams = new URL(path, window.location.origin);
+                const page = urlParams.searchParams.get('page') || 'overview';
+                allNavLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector(`.nav-link[data-section="${page}"]`)?.classList.add('active');
+                document.querySelector(`.mobile-nav-item[data-section="${page}"]`)?.classList.add('active');
             });
         }
 
@@ -539,81 +454,18 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
 
         // Handle back/forward buttons
         window.addEventListener("popstate", function(e) {
-            let section = e.state?.section || "overview";
-
-            // Hide all sections
-            document.querySelectorAll(".dashboard-section").forEach(sec => {
-                sec.style.opacity = '0';
-                setTimeout(() => sec.classList.remove("active"), 300);
-            });
-
-            // Show correct section
-            setTimeout(() => {
-                const targetSection = document.getElementById(section);
-                if (targetSection) {
-                    targetSection.classList.add("active");
-                    setTimeout(() => {
-                        targetSection.style.opacity = '1';
-                        targetSection.style.transform = 'translateY(0)';
-                    }, 50);
-                }
-            }, 300);
-
-            // Update navigation
-            document.querySelectorAll(".nav-link, .mobile-nav-item").forEach(l => l.classList.remove("active"));
-            
-            const desktopLink = document.querySelector('.nav-link[data-section="'+section+'"]');
-            const mobileLink = document.querySelector('.mobile-nav-item[data-section="'+section+'"]');
-            
-            if (desktopLink) desktopLink.classList.add("active");
-            if (mobileLink) mobileLink.classList.add("active");
-
-            // Update page title
-            const contentTitle = document.getElementById('contentTitle');
-            const activeMenu = <?= json_encode($activeMenu) ?>;
-            const menuItem = activeMenu[section];
-            
-            if (menuItem && contentTitle) {
-                contentTitle.textContent = menuItem.text;
-                contentTitle.setAttribute('data-text', menuItem.text);
-            }
+            // This is now handled by the new initNavigation logic
         });
 
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             initNavigation();
-            initFAB();
             initEnhancements();
             
             // Start time updates
-            updateTime();
-            setInterval(updateTime, 1000);
-            
-            // Initialize current section on page load
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentPage = urlParams.get('page') || 'overview';
-            
-            const currentSection = document.getElementById(currentPage);
-            if (currentSection) {
-                document.querySelectorAll(".dashboard-section").forEach(sec => sec.classList.remove("active"));
-                currentSection.classList.add("active");
-                currentSection.style.opacity = '1';
-                currentSection.style.transform = 'translateY(0)';
-            }
-
-            const desktopActiveLink = document.querySelector('.nav-link[data-section="'+currentPage+'"]');
-            const mobileActiveLink = document.querySelector('.mobile-nav-item[data-section="'+currentPage+'"]');
-            
-            if (desktopActiveLink) {
-                document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
-                desktopActiveLink.classList.add("active");
-            }
-            
-            if (mobileActiveLink) {
-                document.querySelectorAll(".mobile-nav-item").forEach(l => l.classList.remove("active"));
-                mobileActiveLink.classList.add("active");
-            }
+            // updateTime(); // You can re-enable this if the function exists
+            // setInterval(updateTime, 500);
         });
 
         // Handle window resize

@@ -95,18 +95,20 @@ $courses = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // Function to get status badge class
-function getStatusBadge($status) {
-    switch ($status) {
-        case 'published':
-            return 'status-published';
-        case 'pending':
-            return 'status-pending';
-        case 'draft':
-            return 'status-draft';
-        case 'archived':
-            return 'status-archived';
-        default:
-            return 'status-draft';
+if (!function_exists('getStatusBadge')) {
+    function getStatusBadge($status) {
+        switch ($status) {
+            case 'published':
+                return 'status-published';
+            case 'pending':
+                return 'status-pending';
+            case 'draft':
+                return 'status-draft';
+            case 'archived':
+                return 'status-archived';
+            default:
+                return 'status-draft';
+        }
     }
 }
 ?>
@@ -165,8 +167,8 @@ function getStatusBadge($status) {
         }
 
         .container {
-            max-width: 1280px;
-            width: 1280px;
+          
+            width: 100%;
             height: 820px;
             margin: 0 auto;
             background: rgba(0, 0, 0, 0);
