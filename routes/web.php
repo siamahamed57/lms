@@ -76,6 +76,20 @@ switch ($route) {
     case 'my-courses':
         include 'student/my_courses.php';
         break;
+    // Dashboard template
+    case 'overview':
+        include'api/templates/overview.php';
+        break;
+
+        
+    //Course Management
+    case 'manage':
+        include 'api/courses/manage.php';
+        break;
+
+
+
+
 
     // Student
     case 'account':
