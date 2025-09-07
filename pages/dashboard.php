@@ -3,6 +3,10 @@
 // Handle form submissions for included pages before any HTML is output.
 $section = $_GET['page'] ?? 'overview';
 
+// Handle lesson management form submissions
+if ($section === 'manage-lessons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../api/lessons/manage-logic.php';
+}
 if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // This file contains logic for update/delete and will redirect if successful.
     include __DIR__ . '/../api/courses/manage-logic.php';
@@ -10,7 +14,7 @@ if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: pages/account.php");
+    header("Location:account");
     exit;
 }
 
@@ -23,17 +27,22 @@ $adminMenu = [
     'users' => ['icon' => 'fas fa-users-cog', 'text' => 'User Management', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
     'manage' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'create-course' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Course', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
+    'create-lesson' => ['icon' => 'fas fa-file-alt', 'text' => 'Create Lesson', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+    'manage-lessons' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Lessons', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'instructors' => ['icon' => 'fas fa-chalkboard-teacher', 'text' => 'Instructors', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'students' => ['icon' => 'fas fa-user-graduate', 'text' => 'Students', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
     'content' => ['icon' => 'fas fa-file-video', 'text' => 'Content', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
     'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+   
     'communication' => ['icon' => 'fas fa-comments', 'text' => 'Communication', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
     'settings' => ['icon' => 'fas fa-cogs', 'text' => 'Settings', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)']
 ];
 
 $instructorMenu = [
     'overview' => ['icon' => 'fas fa-home', 'text' => 'Dashboard', 'gradient' => 'linear-gradient(135deg, #b915ff, #8b5cf6)'],
-    'my-courses' => ['icon' => 'fas fa-book-open', 'text' => 'My Courses', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
+    'create-lesson' => ['icon' => 'fas fa-file-alt', 'text' => 'Create Lesson', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+    'manage-lessons' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Lessons', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
+    'my-courses' => ['icon' => 'fas fa-book-open', 'text' => 'Manage Courses', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'students' => ['icon' => 'fas fa-users', 'text' => 'Students', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
     'assessments' => ['icon' => 'fas fa-tasks', 'text' => 'Assessments', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'analytics' => ['icon' => 'fas fa-chart-line', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
@@ -235,6 +244,30 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     }
                     ?>
                 </section>
+
+                 <section id="create-lesson" class="dashboard-section <?= ($section==='create-lesson')?'active':'' ?>">
+                    <div class="stats-grid">
+                       
+                    </div>
+                    <?php 
+                    if (file_exists(__DIR__ . "/../api/lessons/create.php")) {
+                        include __DIR__ . "/../api/lessons/create.php"; 
+                    }
+                    ?>
+                </section>
+
+                <section id="manage-lessons" class="dashboard-section <?= ($section==='manage-lessons')?'active':'' ?>">
+                    <div class="stats-grid">
+                       
+                    </div>
+                    <?php 
+                    if (file_exists(__DIR__ . "/../api/lessons/manage.php")) {
+                        include __DIR__ . "/../api/lessons/manage.php"; 
+                    }
+                    ?>
+                </section>
+
+
                <section id="edit" class="dashboard-section <?= ($section==='edit')?'active':'' ?>">
                     <div class="stats-grid">
                        
