@@ -13,6 +13,7 @@ $dashboard_pages = [
     'dashboard',
     'logout',
     'account',
+    'manage',
     'my-courses'
     
 ];

@@ -33,111 +33,13 @@ $categories = db_select("SELECT id, name FROM categories ORDER BY name ASC");
 $universities = db_select("SELECT id, name FROM universities ORDER BY name ASC");
 $instructors = db_select("SELECT id, name FROM users WHERE role = 'instructor' ORDER BY name ASC");
 
-// --- Handle Inline Update ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_course_inline') {
-    // Get all fields from the submitted form
-    $course_id_to_update = intval($_POST['course_id'] ?? 0);
-    $title = trim($_POST['title'] ?? '');
-    $subtitle = trim($_POST['subtitle'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $price = floatval($_POST['price'] ?? 0);
-    $category_id = intval($_POST['category_id'] ?? 0);
-    $university_id = intval($_POST['university_id'] ?? 0);
-    $status = $_POST['status'] ?? 'draft';
-    $course_level = $_POST['course_level'] ?? 'beginner';
-    $course_language = trim($_POST['course_language'] ?? 'English');
-    $seo_title = trim($_POST['seo_title'] ?? '');
-    $meta_description = trim($_POST['meta_description'] ?? '');
-    $prerequisites = trim($_POST['prerequisites'] ?? '');
-    $certificate_of_completion = isset($_POST['certificate_of_completion']) ? 1 : 0;
-    $enrollment_limit = intval($_POST['enrollment_limit'] ?? 0);
-    $instructor_id = intval($_POST['instructor_id'] ?? 0);
-    $tags_string = trim($_POST['tags'] ?? '');
-
-    // Basic validation
-    $update_errors = [];
-    if (empty($title)) $update_errors[] = "Title cannot be empty.";
-    if ($price < 0) $update_errors[] = "Price cannot be negative.";
-    if ($course_id_to_update <= 0) $update_errors[] = "Invalid Course ID.";
-    
-    if (empty($update_errors)) {
-        $conn->begin_transaction();
-        try {
-            // 1. Update the main course table
-            $updateQuery = "UPDATE courses SET 
-                title = ?, subtitle = ?, description = ?, price = ?, status = ?, 
-                category_id = ?, university_id = ?, instructor_id = ?, course_level = ?, course_language = ?, 
-                seo_title = ?, meta_description = ?, prerequisites = ?, certificate_of_completion = ?, enrollment_limit = ?
-                WHERE id = ?";
-            
-            $stmt_update = $conn->prepare($updateQuery);
-
-            // Handle NULL values for optional fields
-            $cat_id = $category_id > 0 ? $category_id : null;
-            $uni_id = $university_id > 0 ? $university_id : null;
-            $sub = !empty($subtitle) ? $subtitle : null;
-            $seo_t = !empty($seo_title) ? $seo_title : null;
-            $meta_d = !empty($meta_description) ? $meta_description : null;
-            $prereq = !empty($prerequisites) ? $prerequisites : null;
-            $en_limit = $enrollment_limit > 0 ? $enrollment_limit : null;
-
-            $stmt_update->bind_param(
-                "sssdssiiissssiii",
-                $title, $sub, $description, $price, $status,
-                $cat_id, $uni_id, $instructor_id, $course_level, $course_language,
-                $seo_t, $meta_d, $prereq, $certificate_of_completion, $en_limit,
-                $course_id_to_update
-            );
-
-            if (!$stmt_update->execute()) {
-                throw new Exception("Failed to update course details: " . $stmt_update->error);
-            }
-            $stmt_update->close();
-
-            // 2. Handle Tags: Delete old and insert new
-            $delete_tags_stmt = $conn->prepare("DELETE FROM course_tag WHERE course_id = ?");
-            $delete_tags_stmt->bind_param("i", $course_id_to_update);
-            $delete_tags_stmt->execute();
-            $delete_tags_stmt->close();
-
-            if (!empty($tags_string)) {
-                $tags_array = array_unique(array_map('trim', explode(',', $tags_string)));
-                foreach ($tags_array as $tagName) {
-                    if (!empty($tagName)) {
-                        $tagQuery = "INSERT IGNORE INTO tags (name) VALUES (?)";
-                        $tagStmt = $conn->prepare($tagQuery);
-                        $tagStmt->bind_param("s", $tagName);
-                        $tagStmt->execute();
-                        $tag_id = $conn->insert_id;
-                        if ($tag_id === 0) {
-                            $getTagQuery = "SELECT id FROM tags WHERE name = ?";
-                            $getTagStmt = $conn->prepare($getTagQuery);
-                            $getTagStmt->bind_param("s", $tagName);
-                            $getTagStmt->execute();
-                            $tag_id = $getTagStmt->get_result()->fetch_assoc()['id'];
-                        }
-                        $linkQuery = "INSERT IGNORE INTO course_tag (course_id, tag_id) VALUES (?, ?)";
-                        $linkStmt = $conn->prepare($linkQuery);
-                        $linkStmt->bind_param("ii", $course_id_to_update, $tag_id);
-                        $linkStmt->execute();
-                    }
-                }
-            }
-
-            $conn->commit();
-            $_SESSION['course_management_success'] = "Course '{$title}' updated successfully!";
-        } catch (Exception $e) {
-            $conn->rollback();
-            $_SESSION['course_management_error'] = "Database Error: " . $e->getMessage();
-        }
-    } else {
-        $_SESSION['course_management_error'] = implode("<br>", $update_errors);
-    }
-    
-    // Corrected redirect to the 'manage' section
-    header('Location:dashboard');
-    exit;
+// --- Pagination Setup ---
+$courses_per_page = 100;
+$current_page = isset($_GET['p']) && is_numeric($_GET['p']) ? (int)$_GET['p'] : 1;
+if ($current_page < 1) {
+    $current_page = 1;
 }
+$offset = ($current_page - 1) * $courses_per_page;
 
 // --- Search and Filter Logic ---
 $search_query = trim($_GET['search'] ?? '');
@@ -155,18 +57,37 @@ $sql_select = "SELECT c.*, u.name AS instructor_name, cat.name AS category_name,
                LEFT JOIN tags t ON ct.tag_id = t.id";
 
 if (!empty($search_query)) {
-    $where_clauses[] = "(c.title LIKE ? OR u.name LIKE ?)";
+    $where_clauses[] = "(c.title LIKE ? OR u.name LIKE ? OR cat.name LIKE ?)";
 }
 
 $sql_where = count($where_clauses) ? " WHERE " . implode(" AND ", $where_clauses) : "";
 
+// --- Total courses for pagination ---
+$count_query = "SELECT COUNT(DISTINCT c.id) as total
+                FROM courses c
+                JOIN users u ON c.instructor_id = u.id
+                LEFT JOIN categories cat ON c.category_id = cat.id
+                LEFT JOIN universities uni ON c.university_id = uni.id
+                " . $sql_where;
+$stmt_count = $conn->prepare($count_query);
+if (!empty($search_query)) {
+    $search_like = "%{$search_query}%";
+    $stmt_count->bind_param("sss", $search_like, $search_like, $search_like);
+}
+$stmt_count->execute();
+$total_courses = $stmt_count->get_result()->fetch_assoc()['total'];
+$stmt_count->close();
+$total_pages = ceil($total_courses / $courses_per_page);
+
 // --- Courses query ---
-$sql_courses = $sql_select . $sql_where . " GROUP BY c.id ORDER BY c.created_at DESC";
+$sql_courses = $sql_select . $sql_where . " GROUP BY c.id ORDER BY c.created_at DESC LIMIT ? OFFSET ?";
 
 $stmt = $conn->prepare($sql_courses);
 if (!empty($search_query)) {
     $search_like = "%{$search_query}%";
-    $stmt->bind_param("ss", $search_like, $search_like);
+    $stmt->bind_param("sssii", $search_like, $search_like, $search_like, $courses_per_page, $offset);
+} else {
+    $stmt->bind_param("ii", $courses_per_page, $offset);
 }
 $stmt->execute();
 $result = $stmt->get_result();
@@ -661,7 +582,7 @@ function getStatusBadge($status) {
         <div class="search-container">
             <form action="" method="GET">
                 <div class="search-box">
-                    <input type="hidden" name="page" value="courses">
+                    <input type="hidden" name="_page" value="dashboard"><input type="hidden" name="page" value="manage">
                     <input type="text" name="search" class="search-input" 
                            placeholder="Search by course title or instructor..."
                            value="<?= htmlspecialchars($search_query) ?>">
@@ -716,17 +637,15 @@ function getStatusBadge($status) {
                                             <button class="action-btn action-edit" onclick="toggleEditForm(<?= $course['id'] ?>)">
                                                 <i class="fas fa-edit"></i> <span class="edit-btn-text">Edit</span>
                                             </button>
-                                            <a href="api/courses/delete.php?id=<?= htmlspecialchars($course['id']) ?>" 
-                                               class="action-btn action-delete" target="_blank"
-                                               onclick="return confirm('Are you sure you want to delete this course?')">
+                                            <button class="action-btn action-delete" onclick="confirmDelete(<?= $course['id'] ?>, '<?= htmlspecialchars(addslashes($course['title']), ENT_QUOTES) ?>')">
                                                 <i class="fas fa-trash-alt"></i> Delete
-                                            </a>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr class="edit-form-row" id="edit-form-<?= $course['id'] ?>" style="display: none;">
                                     <td colspan="4" class="edit-form-cell">
-                                        <form method="POST" action=" ">
+                                        <form method="POST" action="">
                                             <input type="hidden" name="action" value="update_course_inline">
                                             <input type="hidden" name="course_id" value="<?= $course['id'] ?>">
                                             
@@ -852,10 +771,44 @@ function getStatusBadge($status) {
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination Controls -->
+            <?php if ($total_pages > 1): ?>
+            <div class="pagination">
+                <?php if ($current_page > 1): ?>
+                    <a href="<?= urlencode($search_query) ?>&p=<?= $current_page - 1 ?>">Previous</a>
+                <?php else: ?>
+                    <span class="disabled">Previous</span>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <a href="<?= urlencode($search_query) ?>&p=<?= $i ?>" class="<?= $i == $current_page ? 'active' : '' ?>"><?= $i ?></a>
+                <?php endfor; ?>
+
+                <?php if ($current_page < $total_pages): ?>
+                    <a href="<?= urlencode($search_query) ?>&p=<?= $current_page + 1 ?>">Next</a>
+                <?php else: ?>
+                    <span class="disabled">Next</span>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
+    <!-- Hidden form for deletion -->
+    <form id="delete-form" method="POST" action="" style="display: none;">
+        <input type="hidden" name="action" value="delete_course">
+        <input type="hidden" name="course_id_to_delete" id="course_id_to_delete">
+    </form>
+
     <script>
+        function confirmDelete(courseId, courseTitle) {
+            if (confirm(`Are you sure you want to delete "${courseTitle}"?\n\nThis action will permanently delete the course and all its associated data (lessons, enrollments, etc.) and cannot be undone.`)) {
+                document.getElementById('course_id_to_delete').value = courseId;
+                document.getElementById('delete-form').submit();
+            }
+        }
+
         let activeEditFormId = null;
 
         function toggleEditForm(courseId) {
@@ -942,26 +895,6 @@ function getStatusBadge($status) {
                 e.preventDefault();
                 document.querySelector('.search-input').focus();
             }
-        });
-
-        // Enhanced delete confirmation with animation
-        document.querySelectorAll('.action-delete').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const row = this.closest('.table-row');
-                const courseTitle = row.querySelector('.course-title').textContent;
-                
-                if (confirm(`Are you sure you want to delete "${courseTitle}"?\n\nThis action cannot be undone.`)) {
-                    // Add fade out animation before redirect
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '0.5';
-                    row.style.transform = 'translateX(-20px)';
-                    
-                    setTimeout(() => {
-                        window.location.href = this.href;
-                    }, 300);
-                }
-            });
         });
     </script>
 </body>

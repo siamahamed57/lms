@@ -1,4 +1,13 @@
 <?php
+// --- Pre-render Logic ---
+// Handle form submissions for included pages before any HTML is output.
+$section = $_GET['page'] ?? 'overview';
+
+if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // This file contains logic for update/delete and will redirect if successful.
+    include __DIR__ . '/../api/courses/manage-logic.php';
+}
+
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: pages/account.php");
@@ -7,9 +16,6 @@ if (!isset($_SESSION['user_id'])) {
 
 // Role
 $userRole = $_SESSION['user_role'] ?? 'student';
-
-// Current section (from URL)
-$section = $_GET['page'] ?? 'overview';
 
 // Menus
 $adminMenu = [
