@@ -6,10 +6,24 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: pages/account.php");
     exit;
 }
+// Role চেক
+$userRole = $_SESSION['user_role'] ?? 'student';
 
+// যদি role student হয় → permission deny
+if ($userRole !== 'admin' && $userRole !== 'instructor') {
+    // Access deny message
+    echo "<h2 style='color:red; text-align:center; margin-top:50px;'>❌ Access Denied!<br>Only Admin or Instructor can access this page.</h2>";
+    exit;
+}
 $activeMenu = ($userRole === 'admin') ? $adminMenu : (($userRole === 'instructor') ? $instructorMenu : $studentMenu);
 $errors = [];
 $success = '';
+
+// After a successful post, a session variable is set before redirecting.
+if (isset($_SESSION['course_creation_success'])) {
+    $success = $_SESSION['course_creation_success'];
+    unset($_SESSION['course_creation_success']);
+}
 
 // Fetch categories for dropdown
 $categoriesQuery = "SELECT id, name FROM categories ORDER BY name ASC";
@@ -264,18 +278,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $conn->commit();
-                $success = "Course created successfully! Course ID: " . $course_id;
-                
-                // Clear form data
-                $title = $subtitle = $description = '';
-                $price = 0;
-                $category_id = $university_id = 0;
-                $seo_title = $meta_description = $prerequisites = $tags = '';
-                $course_level = 'beginner';
-                $course_language = 'English';
-                $certificate_of_completion = 0;
-                $enrollment_limit = 0;
-                
+                $_SESSION['course_creation_success'] = "Course created successfully! Course ID: " . $course_id;
+
+                // Redirect to the same page using JavaScript to clear the POST data and reset the form.
+                echo '<script>window.location.href = window.location.href;</script>';
+                exit;
+
             } else {
                 throw new Exception("Failed to create course.");
             }
@@ -312,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .app-container {
             width: 1280px;
-            height: 620px;
+            height: 820px;
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: 0 10px 20px var(--shadow-light), 0 6px 6px var(--shadow-dark);

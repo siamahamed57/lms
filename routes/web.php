@@ -99,8 +99,11 @@ switch ($route) {
     case 'course_details':
         include './api/courses/detail.php';
         break;
-    case 'course_management':
-        include './api/courses/admin.php';
+    case 'update':
+        include './api/courses/update.php';
+        break;
+    case 'manage':
+        include './api/courses/manage.php';
         break;
     case 'enroll':
         include './api/enrollments/enroll.php';

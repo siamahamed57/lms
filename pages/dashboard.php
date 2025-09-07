@@ -15,7 +15,7 @@ $section = $_GET['page'] ?? 'overview';
 $adminMenu = [
     'overview' => ['icon' => 'fas fa-chart-pie', 'text' => 'Overview', 'gradient' => 'linear-gradient(135deg, #b915ff, #8b5cf6)'],
     'users' => ['icon' => 'fas fa-users-cog', 'text' => 'User Management', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
-    'courses' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
+    'manage' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'create-course' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Course', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'instructors' => ['icon' => 'fas fa-chalkboard-teacher', 'text' => 'Instructors', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'students' => ['icon' => 'fas fa-user-graduate', 'text' => 'Students', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
@@ -219,6 +219,27 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     ?>
                 </section>
 
+             <section id="manage" class="dashboard-section <?= ($section==='manage')?'active':'' ?>">
+                    <div class="stats-grid">
+                       
+                    </div>
+                    <?php 
+                    if (file_exists(__DIR__ . "/../api/courses/manage.php")) {
+                        include __DIR__ . "/../api/courses/manage.php"; 
+                    }
+                    ?>
+                </section>
+               <section id="edit" class="dashboard-section <?= ($section==='edit')?'active':'' ?>">
+                    <div class="stats-grid">
+                       
+                    </div>
+                    <?php 
+                    if (file_exists(__DIR__ . "/../api/courses/update.php")) {
+                        include __DIR__ . "/../api/courses/update.php"; 
+                    }
+                    ?>
+                </section>
+                
                 <!-- User Management Section -->
                 <section id="users" class="dashboard-section <?= ($section==='users')?'active':'' ?>">
                     <div class="stats-grid">
