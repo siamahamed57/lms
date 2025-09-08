@@ -105,6 +105,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // User is logged in → redirect to payment page
-// Assuming payment.php is in the root directory, as this file is included by index.php
-header("Location: payment.php?course_id=$course_id");
+// Redirect to the new pay.php page in the root directory.
+header("Location: ?_page=pay&course_id=$course_id");
 exit;

@@ -14,6 +14,7 @@ $dashboard_pages = [
     'logout',
     'account',
     'manage',
+    'enroll',
     'my-courses'
     
 ];
@@ -137,6 +138,16 @@ switch ($route) {
     case 'submit_quiz':
         include './api/quizzes/submit_quiz.php';
         break;
+    //logout
+    case 'logout':
+        include 'api/auth/logout.php';
+        break;
+        //enrollment
+    case 'enroll':
+        include 'api/enrollments/enroll.php';
+        break;
+    case 'pay':
+        include 'api/payments/pay.php';
 
     default:
         include 'pages/404.php';

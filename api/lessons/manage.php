@@ -194,7 +194,7 @@ if (!function_exists('getStatusBadge')) {
                                     </td>
                                     <td class="table-cell">
                                         <div class="actions">
-                                            <button class="action-btn action-edit" onclick="toggleEditForm(<?= $lesson['id'] ?>)">
+                                            <button type="button" class="action-btn action-edit" onclick="toggleEditForm(<?= $lesson['id'] ?>)">
                                                 <i class="fas fa-edit"></i> <span class="edit-btn-text">Edit</span>
                                             </button>
                                             <button class="action-btn action-delete" onclick="confirmDelete(<?= $lesson['id'] ?>, '<?= htmlspecialchars(addslashes($lesson['title']), ENT_QUOTES) ?>')">
@@ -205,7 +205,7 @@ if (!function_exists('getStatusBadge')) {
                                 </tr>
                                 <tr class="edit-form-row" id="edit-form-<?= $lesson['id'] ?>" style="display: none;">
                                     <td colspan="4" class="edit-form-cell">
-                                        <form method="POST" action="">
+                                        <form method="POST" action="api/lessons/manage-logic.php">
                                             <input type="hidden" name="action" value="update_lesson_inline">
                                             <input type="hidden" name="lesson_id" value="<?= $lesson['id'] ?>">
                                             
@@ -302,7 +302,7 @@ if (!function_exists('getStatusBadge')) {
     </div>
 
     <!-- Hidden form for deletion -->
-    <form id="delete-form" method="POST" action="" style="display: none;">
+    <form id="delete-form" method="POST" action="api/lessons/manage-logic.php" style="display: none;">
         <input type="hidden" name="action" value="delete_lesson">
         <input type="hidden" name="lesson_id_to_delete" id="lesson_id_to_delete">
     </form>

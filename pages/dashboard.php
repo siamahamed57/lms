@@ -33,10 +33,6 @@ if (isset($_GET['ajax'])) {
 // Handle form submissions for included pages before any HTML is output.
 $section = $_GET['page'] ?? 'overview';
 
-// Handle lesson management form submissions
-if ($section === 'manage-lessons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    include __DIR__ . '/../api/lessons/manage-logic.php';
-}
 if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // This file contains logic for update/delete and will redirect if successful.
     include __DIR__ . '/../api/courses/manage-logic.php';
@@ -65,9 +61,9 @@ $adminMenu = [
     'students' => ['icon' => 'fas fa-user-graduate', 'text' => 'Students', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
     'content' => ['icon' => 'fas fa-file-video', 'text' => 'Content', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
     'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
-   
     'communication' => ['icon' => 'fas fa-comments', 'text' => 'Communication', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
-    'settings' => ['icon' => 'fas fa-cogs', 'text' => 'Settings', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)']
+    'settings' => ['icon' => 'fas fa-cogs', 'text' => 'Settings', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)'],
+    'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
 
 $instructorMenu = [
@@ -81,7 +77,8 @@ $instructorMenu = [
     'analytics' => ['icon' => 'fas fa-chart-line', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
     'communication' => ['icon' => 'fas fa-comments', 'text' => 'Messages', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
     'payouts' => ['icon' => 'fas fa-wallet', 'text' => 'Earnings', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
-    'profile' => ['icon' => 'fas fa-user-edit', 'text' => 'Profile', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)']
+    'profile' => ['icon' => 'fas fa-user-edit', 'text' => 'Profile', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
+    'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
 
 $studentMenu = [
@@ -92,7 +89,7 @@ $studentMenu = [
     'certificates' => ['icon' => 'fas fa-award', 'text' => 'Certificates', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
     'profile' => ['icon' => 'fas fa-user-cog', 'text' => 'Profile', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
     'support' => ['icon' => 'fas fa-headset', 'text' => 'Support', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
-    'logout' => ['icon' => 'fas fa-headset', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)']
+    'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
 
 // Active menu based on role
@@ -103,8 +100,9 @@ function generateNavLinks($menu, $section) {
     $html = '';
     foreach ($menu as $page => $details) {
         $isActive = ($page === $section);
+        $href = ($page === 'logout') ? 'api/auth/logout.php' : '?page=' . $page;
         $html .= '<li class="nav-item">
-                    <a href="?page=' . $page . '" 
+                    <a href="' . $href . '" 
                        data-section="' . $page . '" 
                        class="nav-link ' . ($isActive ? 'active' : '') . '"
                        style="--gradient: ' . $details['gradient'] . '">
@@ -126,7 +124,8 @@ function generateMobileNav($menu, $section) {
     foreach ($menu as $page => $details) {
         if ($count >= 5) break; // Limit to 5 items for bottom nav
         $isActive = ($page === $section);
-        $html .= '<a href="?page=' . $page . '" 
+        $href = ($page === 'logout') ? 'api/auth/logout.php' : '?page=' . $page;
+        $html .= '<a href="' . $href . '" 
                      data-section="' . $page . '" 
                      class="mobile-nav-item ' . ($isActive ? 'active' : '') . '"
                      style="--gradient: ' . $details['gradient'] . '">
@@ -235,6 +234,7 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
                     'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
                     'users' => __DIR__ . "/../api/users/user-management.php",
+                    'logout' => __DIR__ . "/../api/auth/logout.php",
                 ];
                 $page_path = $page_map[$section] ?? '';
 
@@ -388,6 +388,12 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
 
             allNavLinks.forEach(link => {
                 link.addEventListener("click", function(e) {
+                    // Let logout links navigate normally, without using AJAX.
+                    // This ensures the session is properly destroyed.
+                    if (this.dataset.section === 'logout') {
+                        return;
+                    }
+
                     e.preventDefault();
                     const targetUrl = this.href;
 
