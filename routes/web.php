@@ -95,6 +95,12 @@ switch ($route) {
         include 'api/lessons/create.php';
         break;
 
+     case 'create-quiz':
+          include 'api/quizzes/create.php';
+        break;
+    case 'manage-quizzes':
+        include 'api/quizzes/manage.php';
+        break;
 
     // Student
     case 'account':

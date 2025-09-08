@@ -1,5 +1,9 @@
 <?php
 // Path to the database connection file.
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../../includes/db.php';
 
 // Use the mysqli helper functions from db.php
@@ -28,12 +32,26 @@ if (!$course) {
 }
 
 // Fetch course curriculum (lessons, quizzes, assignments)
-$curriculum_items = db_select("SELECT 'lesson' as type, title, description, duration, order_no FROM lessons WHERE course_id = ?
+$curriculum_items = db_select("SELECT 'lesson' as type, id, title, description, duration, order_no, is_preview, video_url, video_file_path FROM lessons WHERE course_id = ?
                                 UNION ALL
-                                SELECT 'quiz' as type, title, NULL as description, NULL as duration, NULL as order_no FROM quizzes WHERE course_id = ?
+                                SELECT 'quiz' as type, id, title, NULL as description, NULL as duration, NULL as order_no, 0 as is_preview, NULL as video_url, NULL as video_file_path FROM quizzes WHERE course_id = ?
                                 UNION ALL
-                                SELECT 'assignment' as type, title, description, NULL as duration, NULL as order_no FROM assignments WHERE course_id = ?
+                                SELECT 'assignment' as type, id, title, description, NULL as duration, NULL as order_no, 0 as is_preview, NULL as video_url, NULL as video_file_path FROM assignments WHERE course_id = ?
                                 ORDER BY order_no ASC, type DESC", 'iii', [$course_id, $course_id, $course_id]);
+
+// Helper function to create embeddable video URLs
+function get_embed_url($url) {
+    if (empty($url)) return null;
+    // YouTube
+    if (preg_match('/(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|)([\w-]{11})/', $url, $matches)) {
+        return 'https://www.youtube.com/embed/' . $matches[3] . '?autoplay=0&rel=0';
+    }
+    // Vimeo
+    if (preg_match('/vimeo\.com\/(\d+)/', $url, $matches)) {
+        return 'https://player.vimeo.com/video/' . $matches[1] . '?autoplay=0';
+    }
+    return $url; // Fallback for direct video links
+}
 
 // Calculate total course duration (placeholder for a more complex calculation)
 $total_duration = array_sum(array_column($curriculum_items, 'duration'));
@@ -43,7 +61,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,6 +73,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <style>
         :root {
+            /* Dark Theme Variables (default) */
             --primary: #6366f1;
             --primary-dark: #4f46e5;
             --secondary: #a855f7;
@@ -74,6 +93,25 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
             --glass-bg: rgba(17, 17, 21, 0.7);
             --glass-border: rgba(255, 255, 255, 0.15);
         }
+
+        [data-theme="light"] {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #9333ea;
+            --accent: #0891b2;
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #e2e8f0;
+            --bg-tertiary: #ffffff;
+            --surface: rgba(0, 0, 0, 0.03);
+            --surface-hover: rgba(0, 0, 0, 0.05);
+            --border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
 
         * {
             margin: 0;
@@ -103,24 +141,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
         }
 
         /* Animated Gradient Overlay
-        .animated-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: 
-                radial-gradient(ellipse at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(255, 119, 198, 0.3), transparent 50%),
-                radial-gradient(ellipse at 0% 95%, rgba(232, 121, 249, 0.3), transparent 50%),
-                radial-gradient(ellipse at 20% 20%, rgba(168, 85, 247, 0.2), transparent 50%),
-                radial-gradient(ellipse at 80% 95%, rgba(99, 102, 241, 0.3), transparent 50%),
-                radial-gradient(ellipse at 0% 20%, rgba(6, 182, 212, 0.2), transparent 50%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
-        } */
-
+       
         @keyframes gradient-shift {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -303,12 +324,15 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
         .accordion-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             background: var(--bg-tertiary);
         }
 
-        .accordion-content.active {
-            max-height: 300px;
+        .accordion-icon.rotate {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content-inner {
             padding: 1.5rem;
         }
 
@@ -352,11 +376,44 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                 transform: translateY(-4px);
             }
         }
+
+        /* Video Player Aspect Ratio */
+        .aspect-w-16 {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+        }
+        .aspect-w-16 > iframe,
+        .aspect-w-16 > video {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 1000;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="dot-grid-bg"></div>
     <div class="animated-overlay"></div>
+    <button id="theme-toggle" type="button" class="theme-toggle glass hover:bg-surface-hover transition-colors">
+        <i id="theme-icon-dark" class="fas fa-moon text-yellow-300"></i>
+        <i id="theme-icon-light" class="fas fa-sun text-orange-400 hidden"></i>
+    </button>
     
     <!-- Hero Section -->
     <section class="relative z-10 py-20 px-6">
@@ -408,12 +465,14 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                             <div class="text-4xl font-black gradient-text-primary">
                                 $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                             </div>
-                            <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
-                                <span class="relative z-10 flex items-center justify-center">
-                                    <i class="fas fa-play mr-2"></i>
-                                    Enroll Now
-                                </span>
-                            </button>
+                            <a href="?_page=enroll&course_id=<?= $course['id'] ?>" class="enroll-button block">
+                                <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
+                                    <span class="relative z-10 flex items-center justify-center">
+                                        <i class="fas fa-play mr-2"></i>
+                                        Enroll Now
+                                    </span>
+                                </button>
+                            </a>
                             <div class="flex items-center justify-center text-sm text-gray-400">
                                 <i class="fas fa-shield-alt text-green-400 mr-2"></i>
                                 30-day money-back guarantee
@@ -463,7 +522,106 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                         </div>
                     </div>
                 </section>
-                
+
+
+                 <!-- Course Curriculum -->
+                <section class="glass-strong rounded-3xl p-8 modern-card" id="curriculum-section">
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4">
+                                <i class="fas fa-list text-white"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold gradient-text">Course Curriculum</h2>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-6 mb-8">
+                        <div class="text-center p-4 glass rounded-xl hover-lift">
+                            <div class="text-2xl font-bold text-purple-400"><?= htmlspecialchars($total_lectures) ?></div>
+                            <div class="text-sm text-gray-400">Lessons</div>
+                        </div>
+                        <div class="text-center p-4 glass rounded-xl hover-lift">
+                            <div class="text-2xl font-bold text-yellow-400"><?= htmlspecialchars($total_quizzes) ?></div>
+                            <div class="text-sm text-gray-400">Quizzes</div>
+                        </div>
+                        <div class="text-center p-4 glass rounded-xl hover-lift">
+                            <div class="text-2xl font-bold text-cyan-400"><?= htmlspecialchars($total_assignments) ?></div>
+                            <div class="text-sm text-gray-400">Projects</div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <?php if (empty($curriculum_items)): ?>
+                            <div class="text-center py-12 text-gray-400">
+                                <i class="fas fa-book-open text-4xl opacity-50 mb-4"></i>
+                                <p>Curriculum content coming soon...</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($curriculum_items as $index => $item): 
+                                $icon_class = 'fas fa-play';
+                                $gradient_class = 'from-purple-500 to-blue-500';
+                                $border_color = 'border-purple-500/30';
+                                
+                                if ($item['type'] === 'quiz') {
+                                    $icon_class = 'fas fa-question';
+                                    $gradient_class = 'from-yellow-500 to-orange-500';
+                                    $border_color = 'border-yellow-500/30';
+                                } elseif ($item['type'] === 'assignment') {
+                                    $icon_class = 'fas fa-code';
+                                    $gradient_class = 'from-cyan-500 to-blue-500';
+                                    $border_color = 'border-cyan-500/30';
+                                }
+                            ?>
+                            <div class="accordion-item">
+                                <div class="accordion-header p-6 cursor-pointer flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-10 h-10 bg-gradient-to-br <?= $gradient_class ?> rounded-lg flex items-center justify-center">
+                                            <i class="<?= htmlspecialchars($icon_class) ?> text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center">
+                                                <h3 class="font-semibold text-white">
+                                                    <a href="?_page=lesson&id=<?= $item['id'] ?>" class="hover:text-purple-400 transition-colors"><?= htmlspecialchars($item['title']) ?></a>
+                                                </h3>
+                                                <?php if ($item['type'] === 'lesson' && $item['is_preview']): ?>
+                                                    <span class="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-full ml-3">FREE PREVIEW</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <p class="text-sm text-gray-400 capitalize"><?= htmlspecialchars($item['type']) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <?php if ($item['duration'] > 0): ?>
+                                            <span class="text-sm text-gray-400 font-mono"><?= htmlspecialchars($item['duration']) ?>min</span>
+                                        <?php endif; ?>
+                                        <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 accordion-icon"></i>
+                                    </div>
+                                </div>
+                                <div class="accordion-content">
+                                    <div class="accordion-content-inner">
+                                        <?php 
+                                        if ($item['type'] === 'lesson' && $item['is_preview']) {
+                                            if (!empty($item['video_url'])) {
+                                                $embed_url = get_embed_url($item['video_url']);
+                                                if ($embed_url) {
+                                                    echo '<div class="aspect-w-16 mb-4 rounded-lg overflow-hidden"><iframe src="' . htmlspecialchars($embed_url) . '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+                                                }
+                                            } elseif (!empty($item['video_file_path'])) {
+                                                $video_path = htmlspecialchars($item['video_file_path']);
+                                                echo '<div class="aspect-w-16 mb-4 rounded-lg overflow-hidden bg-black"><video controls class="w-full h-full"><source src="' . $video_path . '" type="video/mp4">Your browser does not support the video tag.</video></div>';
+                                            }
+                                        }
+                                        ?>
+                                        <p class="text-gray-400 leading-relaxed">
+                                            <?= nl2br(htmlspecialchars($item['description'] ?? 'Comprehensive content designed to enhance your understanding and practical skills.')) ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </section>
                 <!-- Learning Outcomes -->
                 <section class="glass-strong rounded-3xl p-8 modern-card" id="learning-outcomes-section">
                     <div class="flex items-center mb-8">
@@ -514,84 +672,7 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                     </div>
                 </section>
 
-                <!-- Course Curriculum -->
-                <section class="glass-strong rounded-3xl p-8 modern-card" id="curriculum-section">
-                    <div class="flex items-center justify-between mb-8">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4">
-                                <i class="fas fa-list text-white"></i>
-                            </div>
-                            <h2 class="text-3xl font-bold gradient-text">Course Curriculum</h2>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-6 mb-8">
-                        <div class="text-center p-4 glass rounded-xl hover-lift">
-                            <div class="text-2xl font-bold text-purple-400"><?= htmlspecialchars($total_lectures) ?></div>
-                            <div class="text-sm text-gray-400">Lessons</div>
-                        </div>
-                        <div class="text-center p-4 glass rounded-xl hover-lift">
-                            <div class="text-2xl font-bold text-yellow-400"><?= htmlspecialchars($total_quizzes) ?></div>
-                            <div class="text-sm text-gray-400">Quizzes</div>
-                        </div>
-                        <div class="text-center p-4 glass rounded-xl hover-lift">
-                            <div class="text-2xl font-bold text-cyan-400"><?= htmlspecialchars($total_assignments) ?></div>
-                            <div class="text-sm text-gray-400">Projects</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <?php if (empty($curriculum_items)): ?>
-                            <div class="text-center py-12 text-gray-400">
-                                <i class="fas fa-book-open text-4xl opacity-50 mb-4"></i>
-                                <p>Curriculum content coming soon...</p>
-                            </div>
-                        <?php else: ?>
-                            <?php foreach ($curriculum_items as $index => $item): 
-                                $icon_class = 'fas fa-play';
-                                $gradient_class = 'from-purple-500 to-blue-500';
-                                $border_color = 'border-purple-500/30';
-                                
-                                if ($item['type'] === 'quiz') {
-                                    $icon_class = 'fas fa-question';
-                                    $gradient_class = 'from-yellow-500 to-orange-500';
-                                    $border_color = 'border-yellow-500/30';
-                                } elseif ($item['type'] === 'assignment') {
-                                    $icon_class = 'fas fa-code';
-                                    $gradient_class = 'from-cyan-500 to-blue-500';
-                                    $border_color = 'border-cyan-500/30';
-                                }
-                            ?>
-                            <div class="accordion-item interactive-element">
-                                <div class="accordion-header p-6 cursor-pointer flex items-center justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-10 h-10 bg-gradient-to-br <?= $gradient_class ?> rounded-lg flex items-center justify-center">
-                                            <i class="<?= htmlspecialchars($icon_class) ?> text-white text-sm"></i>
-                                        </div>
-                                        <div>
-                                            <h3 class="font-semibold text-white"><?= htmlspecialchars($item['title']) ?></h3>
-                                            <p class="text-sm text-gray-400 capitalize"><?= htmlspecialchars($item['type']) ?></p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-4">
-                                        <?php if ($item['duration'] > 0): ?>
-                                            <span class="text-sm text-gray-400 font-mono"><?= htmlspecialchars($item['duration']) ?>min</span>
-                                        <?php endif; ?>
-                                        <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 accordion-icon"></i>
-                                    </div>
-                                </div>
-                                <div class="accordion-content">
-                                    <div class="p-6 pt-0">
-                                        <p class="text-gray-400 leading-relaxed">
-                                            <?= nl2br(htmlspecialchars($item['description'] ?? 'Comprehensive content designed to enhance your understanding and practical skills.')) ?>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                </section>
+               
                 
                 <!-- Reviews Section -->
                 <section class="glass-strong rounded-3xl p-8 modern-card" id="reviews-section">
@@ -620,12 +701,14 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                         <div class="text-5xl font-black gradient-text-primary">
                             $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                         </div>
-                        <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
-                            <span class="relative z-10 flex items-center justify-center">
-                                <i class="fas fa-play mr-2"></i>
-                                Enroll Now
-                            </span>
-                        </button>
+                        <a href="?_page=enroll&course_id=<?= $course['id'] ?>" class="enroll-button block">
+                            <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
+                                <span class="relative z-10 flex items-center justify-center">
+                                    <i class="fas fa-play mr-2"></i>
+                                    Enroll Now
+                                </span>
+                            </button>
+                        </a>
                         <div class="flex items-center justify-center text-sm text-gray-400">
                             <i class="fas fa-shield-alt text-green-400 mr-2"></i>
                             30-day money-back guarantee
@@ -636,51 +719,131 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
         </div>
     </main>
 
-    <!-- <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const accordionHeaders = document.querySelectorAll('.accordion-header');
+    <!-- Login Required Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-strong rounded-2xl p-8 text-center max-w-sm w-full relative transform scale-95 transition-all duration-300">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors text-2xl">&times;</button>
+            <div class="w-16 h-16 mx-auto bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center mb-4">
+                <i class="fas fa-lock text-white text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Login Required</h3>
+            <p class="text-gray-400 mb-6">Please log in to enroll in this course and access all its content.</p>
+            <a href="?_page=account" class="btn-primary w-full block py-3 px-6 rounded-xl font-semibold text-white">
+                Go to Login Page
+            </a>
+        </div>
+    </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isUserLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+
+            // --- Theme Toggler ---
+            const themeToggle = document.getElementById('theme-toggle');
+            const lightIcon = document.getElementById('theme-icon-light');
+            const darkIcon = document.getElementById('theme-icon-dark');
+            const htmlEl = document.documentElement;
+
+            const setTheme = (theme) => {
+                htmlEl.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                if (theme === 'dark') {
+                    darkIcon.classList.remove('hidden');
+                    lightIcon.classList.add('hidden');
+                } else {
+                    darkIcon.classList.add('hidden');
+                    lightIcon.classList.remove('hidden');
+                }
+            };
+
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlEl.getAttribute('data-theme');
+                setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
+
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            }
+
+            // --- Accordion Logic ---
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
             accordionHeaders.forEach(header => {
                 header.addEventListener('click', () => {
                     const content = header.nextElementSibling;
                     const icon = header.querySelector('.accordion-icon');
+                    const isExpanded = content.style.maxHeight && content.style.maxHeight !== '0px';
 
-                    const isExpanded = content.classList.contains('active');
-                    
+                    // Close all other items before opening a new one
+                    document.querySelectorAll('.accordion-content').forEach(item => {
+                        if (item !== content) {
+                            item.style.maxHeight = '0px';
+                            item.previousElementSibling.querySelector('.accordion-icon')?.classList.remove('rotate');
+                        }
+                    });
+
+                    // Toggle the clicked item
                     if (isExpanded) {
-                        content.classList.remove('active');
-                        icon.classList.remove('rotate');
+                        content.style.maxHeight = '0px';
+                        icon?.classList.remove('rotate');
                     } else {
-                        document.querySelectorAll('.accordion-content.active').forEach(item => {
-                            item.classList.remove('active');
-                            item.previousElementSibling.querySelector('.accordion-icon').classList.remove('rotate');
-                        });
-                        content.classList.add('active');
-                        icon.classList.add('rotate');
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon?.classList.add('rotate');
                     }
                 });
             });
 
-            gsap.registerPlugin(ScrollTrigger);
+            // --- Enroll Button & Modal Logic ---
+            const enrollButtons = document.querySelectorAll('.enroll-button');
+            const loginModal = document.getElementById('login-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const modalContent = loginModal.querySelector('.glass-strong');
 
-            const sections = document.querySelectorAll('section');
-            sections.forEach(section => {
-                gsap.fromTo(section, 
-                    { opacity: 0, y: 50 },
-                    { opacity: 1, y: 0, duration: 1, ease: "power2.out", 
-                      scrollTrigger: {
-                        trigger: section,
-                        start: "top 85%",
-                        toggleActions: "play none none none"
+            enrollButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    if (!isUserLoggedIn) {
+                        e.preventDefault(); // Stop the link from navigating
+                        loginModal.classList.remove('hidden');
+                        setTimeout(() => {
+                            loginModal.style.opacity = 1;
+                            modalContent.style.transform = 'scale(1)';
+                        }, 10);
                     }
                 });
             });
 
-            gsap.from('.hero-title', { opacity: 0, y: -50, duration: 1.5, ease: "power4.out" });
-            gsap.from('.hero-subtitle', { opacity: 0, y: -30, duration: 1.5, ease: "power4.out", delay: 0.2 });
-            gsap.from('.hero-meta > div', { opacity: 0, y: 20, duration: 1, ease: "power2.out", stagger: 0.1, delay: 0.5 });
-            gsap.from('.hero-visual', { opacity: 0, x: 50, duration: 1.5, ease: "power4.out", delay: 0.8 });
+            const hideModal = () => {
+                loginModal.style.opacity = 0;
+                modalContent.style.transform = 'scale(0.95)';
+                setTimeout(() => loginModal.classList.add('hidden'), 300);
+            };
+
+            closeModalBtn.addEventListener('click', hideModal);
+            loginModal.addEventListener('click', (e) => {
+                if (e.target === loginModal) hideModal();
+            });
+
+            // // --- GSAP Animations ---
+            // gsap.registerPlugin(ScrollTrigger);
+
+            // const sections = document.querySelectorAll('section');
+            // sections.forEach(section => {
+            //     gsap.fromTo(section, 
+            //         { opacity: 0, y: 50 },
+            //         { opacity: 1, y: 0, duration: 1, ease: "power2.out", 
+            //           scrollTrigger: {
+            //             trigger: section,
+            //             start: "top 85%",
+            //             toggleActions: "play none none none"
+            //         }
+            //     });
+            // });
+
+            // gsap.from('.hero-title', { opacity: 0, y: -50, duration: 1.5, ease: "power4.out" });
+            // gsap.from('.hero-subtitle', { opacity: 0, y: -30, duration: 1.5, ease: "power4.out", delay: 0.2 });
+            // gsap.from('.hero-meta > div', { opacity: 0, y: 20, duration: 1, ease: "power2.out", stagger: 0.1, delay: 0.5 });
+            // gsap.from('.hero-visual', { opacity: 0, x: 50, duration: 1.5, ease: "power4.out", delay: 0.8 });
         });
-    </script> -->
+    </script>
 </body>
 </html>

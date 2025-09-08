@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $q_id = $quiz_id > 0 ? $quiz_id : null;
             $a_id = $assignment_id > 0 ? $assignment_id : null;
 
-            $success = db_execute($updateQuery, "ississsisiisi", [
+            $success = db_execute($updateQuery, "ississisiiii", [
                 $course_id, $title, $description, $order_no, $duration,
                 $status, $is_preview, $release_date, $is_locked, $q_id, $a_id,
                 $lesson_id
