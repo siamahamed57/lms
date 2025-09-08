@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // --- File Upload Handling ---
-    $uploadDir = __DIR__ . '/../uploads/lessons/';
+    $uploadDir = __DIR__ . '/../../uploads/lessons/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }

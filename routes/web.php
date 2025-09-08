@@ -4,19 +4,22 @@ session_start();
 // Routing param
 $route = $_GET['_page'] ?? 'home';
 
-// Reserved dashboard pages
+// Pages that don't need the main site header/footer layout
 $dashboard_pages = [
-    'admin_dashboard',
-    'admin_users',
-    'admin_courses',
-    'instructor_dashboard',
     'dashboard',
     'logout',
     'account',
-    'manage',
     'enroll',
-    'my-courses'
-    
+    'pay',
+    'course_details',
+    // Dashboard sections loaded via AJAX
+    'overview',
+    'users',
+    'create-course', 'manage',
+    'create-lesson', 'manage-lessons',
+    'create-quiz', 'manage-quizzes',
+    'my-courses', 'lesson', 'quiz',
+    'lesson'
 ];
 
 // Layout?
@@ -70,9 +73,6 @@ switch ($route) {
     case 'logout':
         include 'api/auth/logout.php';
         break;
-    case 'login':
-        include 'api/auth/login.php';
-        break;
 
     // Instructor
     case 'my-courses':
@@ -92,7 +92,7 @@ switch ($route) {
         include 'api/courses/create.php';
         break;
 
-    case 'create-lessons':
+    case 'create-lesson':
         include 'api/lessons/create.php';
         break;
 
@@ -106,22 +106,14 @@ switch ($route) {
     // Student
     case 'account':
     case 'register':
+    case 'login': // Consolidate login to account page
         include 'pages/account.php';
         break;
     case 'course_details':
         include './api/courses/detail.php';
         break;
-    case 'update':
-        include './api/courses/update.php';
-        break;
-    case 'manage':
-        include './api/courses/manage.php';
-        break;
     case 'enroll':
         include './api/enrollments/enroll.php';
-        break;
-    case 'my_courses':
-        include './api/enrollments/my_courses.php';
         break;
     case 'progress':
         include './api/enrollments/progress.php';
@@ -137,14 +129,6 @@ switch ($route) {
         break;
     case 'submit_quiz':
         include './api/quizzes/submit_quiz.php';
-        break;
-    //logout
-    case 'logout':
-        include 'api/auth/logout.php';
-        break;
-        //enrollment
-    case 'enroll':
-        include 'api/enrollments/enroll.php';
         break;
     case 'pay':
         include 'api/payments/pay.php';

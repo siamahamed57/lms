@@ -21,6 +21,12 @@ if (isset($_GET['ajax'])) {
         'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
         'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
         'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
+        'quiz' => __DIR__ . "/../student/quiz.php",
+        'submit_quiz' => __DIR__ . "/../api/quizzes/submit_quiz.php",
+        'my-courses' => __DIR__ . "/../student/my_courses.php",
+        'lesson' => __DIR__ . "/../student/lesson.php",
+        'certificate' => __DIR__ . "/../student/certificate.php",
+        'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",
         'users' => __DIR__ . "/../api/users/user-management.php",
     ];
     $page_path = $page_map[$section] ?? '';
@@ -33,6 +39,25 @@ if (isset($_GET['ajax'])) {
 // Handle form submissions for included pages before any HTML is output.
 $section = $_GET['page'] ?? 'overview';
 
+// Handle lesson completion before any HTML is output
+if ($section === 'lesson' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/lesson-logic.php';
+}
+
+// Handle quiz submission before any HTML is output
+if ($section === 'submit_quiz' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../api/quizzes/submit_quiz.php';
+}
+
+// Handle enrollment management form submissions
+if ($section === 'enrollment-management' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../student/enrollment-logic.php';
+}
+
+// Handle lesson management form submissions
+if ($section === 'manage-lessons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../api/lessons/manage-logic.php';
+}
 if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // This file contains logic for update/delete and will redirect if successful.
     include __DIR__ . '/../api/courses/manage-logic.php';
@@ -53,6 +78,7 @@ $adminMenu = [
     'users' => ['icon' => 'fas fa-users-cog', 'text' => 'User Management', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
     'create-course' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Course', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'create-lesson' => ['icon' => 'fas fa-file-alt', 'text' => 'Create Lesson', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+    'enrollment-management' => ['icon' => 'fas fa-user-plus', 'text' => 'Enroll Students', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'create-quiz' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Quiz', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'manage' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'manage-lessons' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Lessons', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
@@ -233,8 +259,13 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
                     'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
                     'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
+                    'quiz' => __DIR__ . "/../student/quiz.php",
+                    'submit_quiz' => __DIR__ . "/../api/quizzes/submit_quiz.php",
+                    'my-courses' => __DIR__ . "/../student/my_courses.php",
+                    'lesson' => __DIR__ . "/../student/lesson.php",
+                    'certificate' => __DIR__ . "/../student/certificate.php",
+                    'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",
                     'users' => __DIR__ . "/../api/users/user-management.php",
-                    'logout' => __DIR__ . "/../api/auth/logout.php",
                 ];
                 $page_path = $page_map[$section] ?? '';
 
@@ -336,7 +367,6 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
         }
 
         function initNavigation() {
-            const allNavLinks = document.querySelectorAll(".nav-link, .mobile-nav-item");
             const contentBody = document.querySelector('.content-body');
             const contentTitle = document.getElementById('contentTitle'); // Assuming you have this element
             const activeMenu = <?= json_encode($activeMenu) ?>;
@@ -386,29 +416,33 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     });
             };
 
-            allNavLinks.forEach(link => {
-                link.addEventListener("click", function(e) {
-                    // Let logout links navigate normally, without using AJAX.
-                    // This ensures the session is properly destroyed.
-                    if (this.dataset.section === 'logout') {
-                        return;
-                    }
+            // Use event delegation for all internal links
+            document.body.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
 
-                    e.preventDefault();
-                    const targetUrl = this.href;
+                // Ignore if not a link or if it's an external/logout/anchor link
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || !href.startsWith('?page=')) {
+                    return;
+                }
 
-                    if (window.location.href === targetUrl) {
-                        return;
-                    }
+                e.preventDefault();
+                const targetUrl = link.href;
 
-                    // Update active link style immediately
-                    allNavLinks.forEach(l => l.classList.remove('active'));
-                    const section = this.dataset.section;
+                if (window.location.href === targetUrl) {
+                    return;
+                }
+
+                // Update active link style for main navigation
+                if (link.matches('.nav-link, .mobile-nav-item')) {
+                    document.querySelectorAll(".nav-link, .mobile-nav-item").forEach(l => l.classList.remove('active'));
+                    const section = link.dataset.section;
                     document.querySelector(`.nav-link[data-section="${section}"]`)?.classList.add('active');
                     document.querySelector(`.mobile-nav-item[data-section="${section}"]`)?.classList.add('active');
+                }
 
-                    loadContent(targetUrl);
-                });
+                loadContent(targetUrl);
             });
 
             window.addEventListener("popstate", function(e) {
@@ -418,6 +452,7 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                 // Update active link on popstate
                 const urlParams = new URL(path, window.location.origin);
                 const page = urlParams.searchParams.get('page') || 'overview';
+                const allNavLinks = document.querySelectorAll(".nav-link, .mobile-nav-item");
                 allNavLinks.forEach(l => l.classList.remove('active'));
                 document.querySelector(`.nav-link[data-section="${page}"]`)?.classList.add('active');
                 document.querySelector(`.mobile-nav-item[data-section="${page}"]`)?.classList.add('active');

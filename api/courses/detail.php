@@ -31,6 +31,15 @@ if (!$course) {
     exit;
 }
 
+// Check if the user is already enrolled in this course
+$is_enrolled = false;
+if (isset($_SESSION['user_id'])) {
+    $enrollment_check = db_select("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ?", 'ii', [$_SESSION['user_id'], $course_id]);
+    if (!empty($enrollment_check)) {
+        $is_enrolled = true;
+    }
+}
+
 // Fetch course curriculum (lessons, quizzes, assignments)
 $curriculum_items = db_select("SELECT 'lesson' as type, id, title, description, duration, order_no, is_preview, video_url, video_file_path FROM lessons WHERE course_id = ?
                                 UNION ALL
@@ -58,6 +67,15 @@ $total_duration = array_sum(array_column($curriculum_items, 'duration'));
 $total_lectures = count(array_filter($curriculum_items, fn($item) => $item['type'] === 'lesson'));
 $total_quizzes = count(array_filter($curriculum_items, fn($item) => $item['type'] === 'quiz'));
 $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['type'] === 'assignment'));
+
+// Find the first lesson ID to link to for enrolled students
+$first_lesson_id = null;
+foreach ($curriculum_items as $item) {
+    if ($item['type'] === 'lesson') {
+        $first_lesson_id = $item['id'];
+        break;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -465,14 +483,25 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                             <div class="text-4xl font-black gradient-text-primary">
                                 $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                             </div>
-                            <a href="?_page=enroll&course_id=<?= $course['id'] ?>" class="enroll-button block">
-                                <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
-                                    <span class="relative z-10 flex items-center justify-center">
-                                        <i class="fas fa-play mr-2"></i>
-                                        Enroll Now
-                                    </span>
-                                </button>
-                            </a>
+                            <?php if ($is_enrolled && $first_lesson_id): ?>
+                                <a href="?_page=lesson&id=<?= $first_lesson_id ?>" class="enroll-button block">
+                                    <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group" style="background: linear-gradient(135deg, var(--success), #15803d);">
+                                        <span class="relative z-10 flex items-center justify-center">
+                                            <i class="fas fa-arrow-right mr-2"></i>
+                                            Continue Course
+                                        </span>
+                                    </button>
+                                </a>
+                            <?php else: ?>
+                                <a href="?_page=enroll&course_id=<?= $course['id'] ?>" class="enroll-button block">
+                                    <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
+                                        <span class="relative z-10 flex items-center justify-center">
+                                            <i class="fas fa-play mr-2"></i>
+                                            Enroll Now
+                                        </span>
+                                    </button>
+                                </a>
+                            <?php endif; ?>
                             <div class="flex items-center justify-center text-sm text-gray-400">
                                 <i class="fas fa-shield-alt text-green-400 mr-2"></i>
                                 30-day money-back guarantee
@@ -701,14 +730,25 @@ $total_assignments = count(array_filter($curriculum_items, fn($item) => $item['t
                         <div class="text-5xl font-black gradient-text-primary">
                             $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                         </div>
-                        <a href="?_page=enroll&course_id=<?= $course['id'] ?>" class="enroll-button block">
-                            <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
-                                <span class="relative z-10 flex items-center justify-center">
-                                    <i class="fas fa-play mr-2"></i>
-                                    Enroll Now
-                                </span>
-                            </button>
-                        </a>
+                        <?php if ($is_enrolled && $first_lesson_id): ?>
+                            <a href="?_page=lesson&id=<?= $first_lesson_id ?>" class="enroll-button block">
+                                <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group" style="background: linear-gradient(135deg, var(--success), #15803d);">
+                                    <span class="relative z-10 flex items-center justify-center">
+                                        <i class="fas fa-arrow-right mr-2"></i>
+                                        Continue Course
+                                    </span>
+                                </button>
+                            </a>
+                        <?php else: ?>
+                            <a href="?_page=enroll&course_id=<?= $course['id'] ?>" class="enroll-button block">
+                                <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group">
+                                    <span class="relative z-10 flex items-center justify-center">
+                                        <i class="fas fa-play mr-2"></i>
+                                        Enroll Now
+                                    </span>
+                                </button>
+                            </a>
+                        <?php endif; ?>
                         <div class="flex items-center justify-center text-sm text-gray-400">
                             <i class="fas fa-shield-alt text-green-400 mr-2"></i>
                             30-day money-back guarantee

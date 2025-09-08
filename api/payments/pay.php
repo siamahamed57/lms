@@ -33,8 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $is_enrolled = db_select("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ?", 'ii', [$user_id, $course_id]);
 
         if (empty($is_enrolled)) {
-            // Enroll the user in the database
-            db_execute("INSERT INTO enrollments (student_id, course_id, progress) VALUES (?, ?, ?)", 'iid', [$user_id, $course_id, 0.00]);
+            // Set an expiration date (e.g., 1 year from now)
+            $expires_at = date('Y-m-d H:i:s', strtotime('+1 year'));
+            // Enroll the user in the database. The 'status' column will use its default 'active' value.
+            db_execute("INSERT INTO enrollments (student_id, course_id, progress, expires_at) VALUES (?, ?, ?, ?)", 'iids', [$user_id, $course_id, 0.00, $expires_at]);
         }
 
         // Set a session flag to trigger the success popup on the next page load
