@@ -96,6 +96,9 @@ function get_embed_url($url) {
 
 $is_completed = in_array($lesson_id, $completed_lesson_ids);
 
+$quiz_popup_message = $_SESSION['quiz_result_popup'] ?? null;
+unset($_SESSION['quiz_result_popup']);
+
 ?>
 <style>
     .learning-wrapper { display: flex; height: calc(100vh - 80px); background: var(--bg-secondary); }
@@ -285,5 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(moveWatermark, 5000); // Move every 5 seconds
         setTimeout(moveWatermark, 100); // Set initial random position
     }
+
+    <?php if ($quiz_popup_message): ?>
+    // Using a simple alert for the popup as requested.
+    // A more styled modal could be used here for better UX.
+    alert('<?= addslashes(htmlspecialchars($quiz_popup_message)) ?>');
+    // Clean up the URL
+    const url = new URL(window.location);
+    url.searchParams.delete('quiz_completed');
+    window.history.replaceState({}, document.title, url);
+    <?php endif; ?>
 });
 </script>

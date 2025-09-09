@@ -240,6 +240,10 @@ $enrolled_courses = db_select($enrolled_courses_query, "i", [$student_id]);
      ) ENGINE=InnoDB;
 -->
 
+<?php
+$quiz_popup_message = $_SESSION['quiz_result_popup'] ?? null;
+unset($_SESSION['quiz_result_popup']);
+?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('materials-modal');
@@ -285,5 +289,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = () => modal.style.display = 'none';
     closeModalBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', e => e.target === modal && closeModal());
+
+    <?php if ($quiz_popup_message): ?>
+    // Using a simple alert for the popup as requested.
+    alert('<?= addslashes(htmlspecialchars($quiz_popup_message)) ?>');
+    // Clean up the URL
+    const url = new URL(window.location);
+    url.searchParams.delete('quiz_completed');
+    window.history.replaceState({}, document.title, url);
+    <?php endif; ?>
 });
 </script>

@@ -4,6 +4,87 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/../includes/db.php';
 
+// --- Handle Quiz Submission ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz_action'])) {
+    global $conn;
+    $quiz_id = intval($_POST['quiz_id']);
+    $student_id = $_SESSION['user_id'];
+    $answers = $_POST['answers'] ?? [];
+
+    // --- Prevent re-submission and check attempt limits ---
+    $quiz_info_raw = db_select("SELECT title, attempts_allowed, course_id FROM quizzes WHERE id = ?", "i", [$quiz_id]);
+    $quiz_info = $quiz_info_raw[0] ?? null;
+    if (!$quiz_info) {
+        die("Quiz not found during submission.");
+    }
+    $attempts_allowed = $quiz_info['attempts_allowed'];
+    $course_id_for_redirect = $quiz_info['course_id'];
+
+    $attempts_taken_raw = db_select("SELECT COUNT(id) as count FROM student_quiz_attempts WHERE student_id = ? AND quiz_id = ?", "ii", [$student_id, $quiz_id]);
+    $attempts_taken = $attempts_taken_raw[0]['count'];
+
+    if ($attempts_allowed > 0 && $attempts_taken >= $attempts_allowed) {
+        $_SESSION['quiz_message'] = ['type' => 'error', 'text' => 'You have reached the maximum number of attempts for this quiz.'];
+        header('Location: ?page=quiz&id=' . $quiz_id);
+        exit;
+    }
+
+    // --- Calculate Score ---
+    $score = 0;
+    $total_marks = 0;
+    $questions_for_scoring = db_select("SELECT id, type, marks FROM questions WHERE quiz_id = ?", "i", [$quiz_id]);
+    
+    $conn->begin_transaction();
+    try {
+        // 1. Create attempt record
+        $attempt_id = db_execute("INSERT INTO student_quiz_attempts (student_id, quiz_id, score) VALUES (?, ?, 0)", "ii", [$student_id, $quiz_id]);
+        if (!$attempt_id) {
+            throw new Exception("Failed to create quiz attempt record.");
+        }
+
+        // 2. Process and save answers
+        foreach ($questions_for_scoring as $question) {
+            $q_id = $question['id'];
+            $q_marks = $question['marks'];
+            $total_marks += $q_marks;
+
+            $selected_option_id = null;
+            $answer_text = null;
+
+            if (isset($answers[$q_id])) {
+                if ($question['type'] === 'mcq' || $question['type'] === 'true_false') {
+                    $selected_option_id = intval($answers[$q_id]);
+                    $correct_option = db_select("SELECT id FROM quiz_options WHERE question_id = ? AND is_correct = 1", "i", [$q_id]);
+                    if (!empty($correct_option) && $correct_option[0]['id'] == $selected_option_id) {
+                        $score += $q_marks;
+                    }
+                } elseif ($question['type'] === 'short_answer') {
+                    $answer_text = trim($answers[$q_id]);
+                }
+            }
+            db_execute("INSERT INTO student_quiz_answers (attempt_id, question_id, selected_option_id, answer_text) VALUES (?, ?, ?, ?)", "iiis", [$attempt_id, $q_id, $selected_option_id, $answer_text]);
+        }
+
+        // 3. Update attempt with final score
+        db_execute("UPDATE student_quiz_attempts SET score = ? WHERE id = ?", "di", [$score, $attempt_id]);
+        $conn->commit();
+
+        $_SESSION['quiz_result_popup'] = "Quiz '" . htmlspecialchars($quiz_info['title']) . "' completed! You scored $score out of $total_marks.";
+        
+        $first_lesson_q = db_select("SELECT id FROM lessons WHERE course_id = ? ORDER BY order_no ASC, id ASC LIMIT 1", "i", [$course_id_for_redirect]);
+        $lesson_id_to_redirect = $first_lesson_q[0]['id'] ?? null;
+
+        header('Location: ?page=lesson&id=' . $lesson_id_to_redirect . '&quiz_completed=' . $quiz_id);
+        exit;
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['quiz_message'] = ['type' => 'error', 'text' => 'An error occurred: ' . $e->getMessage()];
+        header('Location: ?page=quiz&id=' . $quiz_id);
+        exit;
+    }
+}
+
 // --- Authorization & Data Fetching ---
 if (!isset($_SESSION['user_id'])) {
     echo "<div class='p-8 text-center'><h2 class='text-2xl font-bold text-red-600'>❌ Please log in to take this quiz.</h2></div>";
@@ -54,6 +135,16 @@ $curriculum_items = db_select($curriculum_sql, "ii", [$course_id, $course_id]);
 $completed_lessons_raw = db_select("SELECT lesson_id FROM student_lesson_completion WHERE student_id = ? AND lesson_id IN (SELECT id FROM lessons WHERE course_id = ?)", "ii", [$student_id, $course_id]);
 $completed_lesson_ids = array_column($completed_lessons_raw, 'lesson_id');
 
+// --- Check previous attempts ---
+$attempts_allowed = $quiz['attempts_allowed'];
+$attempts_taken_raw = db_select("SELECT COUNT(id) as count, MAX(score) as best_score, MAX(completed_at) as last_attempt_date FROM student_quiz_attempts WHERE student_id = ? AND quiz_id = ?", "ii", [$student_id, $quiz_id]);
+$attempts_info = $attempts_taken_raw[0];
+$attempts_taken = $attempts_info['count'];
+
+$can_take_quiz = ($attempts_allowed == 0 || $attempts_taken < $attempts_allowed);
+
+$quiz_message = $_SESSION['quiz_message'] ?? null;
+unset($_SESSION['quiz_message']);
 
 // --- Fetch Questions and Options ---
 $questions_raw = db_select("SELECT * FROM questions WHERE quiz_id = ? ORDER BY id ASC", "i", [$quiz_id]);
@@ -116,12 +207,24 @@ if (!empty($questions_raw)) {
                 <p><?= htmlspecialchars($quiz['description']) ?></p>
             </div>
 
-            <?php if (empty($questions)): ?>
+            <?php if ($quiz_message): ?>
+                <div class="p-4 mb-4 text-sm rounded-lg <?= $quiz_message['type'] === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' ?>">
+                    <?= htmlspecialchars($quiz_message['text']) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!$can_take_quiz): ?>
+                <div class="p-6 bg-surface-light rounded-lg text-center">
+                    <h3 class="text-xl font-bold text-primary">Quiz Already Taken</h3>
+                    <p class="mt-2">You have used all your attempts for this quiz.</p>
+                    <p class="mt-1">Your best score was: <strong><?= htmlspecialchars($attempts_info['best_score'] ?? 'N/A') ?></strong></p>
+                </div>
+            <?php elseif (empty($questions)): ?>
                 <p>This quiz has no questions yet. Please check back later.</p>
             <?php else: ?>
-                <form action="?page=submit_quiz" method="POST">
+                <form action="?page=quiz&id=<?= $quiz_id ?>" method="POST">
                     <input type="hidden" name="quiz_id" value="<?= $quiz_id ?>">
-                    
+                    <input type="hidden" name="submit_quiz_action" value="1">
                     <?php foreach ($questions as $index => $question): ?>
                         <div class="question-block">
                             <p class="question-text"><?= ($index + 1) . '. ' . htmlspecialchars($question['question_text']) ?></p>
@@ -171,92 +274,3 @@ if (!empty($questions_raw)) {
         </ul>
     </aside>
 </div>
-```
-
-### 3. New File: Quiz Submission Logic
-
-This file handles the grading and saving of a student's quiz attempt.
-
-```diff
---- /dev/null
-+++ b/c/xampp/htdocs/lms/api/quizzes/submit_quiz.php
-@@ -0,0 +1,78 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-require_once __DIR__ . '/../../includes/db.php';
-
-// --- Authorization & Validation ---
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id'])) {
-    die("Invalid request.");
-}
-
-$student_id = $_SESSION['user_id'];
-$quiz_id = intval($_POST['quiz_id'] ?? 0);
-$submitted_answers = $_POST['answers'] ?? [];
-
-if ($quiz_id <= 0 || empty($submitted_answers)) {
-    die("Missing quiz data.");
-}
-
-// --- Fetch Correct Answers ---
-$questions_sql = "
-    SELECT q.id as question_id, q.marks, qo.id as correct_option_id
-    FROM questions q
-    LEFT JOIN quiz_options qo ON q.id = qo.question_id AND qo.is_correct = 1
-    WHERE q.quiz_id = ?
-";
-$correct_answers_raw = db_select($questions_sql, "i", [$quiz_id]);
-
-$correct_answers = [];
-foreach ($correct_answers_raw as $row) {
-    $correct_answers[$row['question_id']] = [
-        'marks' => $row['marks'],
-        'correct_option_id' => $row['correct_option_id']
-    ];
-}
-
-// --- Grade the Quiz ---
-$total_score = 0;
-$total_possible_marks = 0;
-
-foreach ($correct_answers as $question_id => $answer_data) {
-    $total_possible_marks += $answer_data['marks'];
-    if (isset($submitted_answers[$question_id])) {
-        $student_answer = $submitted_answers[$question_id];
-        // For now, we only grade MCQ/True-False
-        if ($student_answer == $answer_data['correct_option_id']) {
-            $total_score += $answer_data['marks'];
-        }
-    }
-}
-
-$percentage_score = ($total_possible_marks > 0) ? round(($total_score / $total_possible_marks) * 100) : 0;
-
-// --- Save the Attempt ---
-global $conn;
-$conn->begin_transaction();
-try {
-    // Create the attempt record
-    $attempt_sql = "INSERT INTO student_quiz_attempts (student_id, quiz_id, score, completed_at) VALUES (?, ?, ?, NOW())";
-    $attempt_id = db_execute($attempt_sql, "iid", [$student_id, $quiz_id, $percentage_score]);
-
-    // Save individual answers
-    $answer_sql = "INSERT INTO student_quiz_answers (attempt_id, question_id, selected_option_id) VALUES (?, ?, ?)";
-    foreach ($submitted_answers as $question_id => $option_id) {
-        db_execute($answer_sql, "iii", [$attempt_id, $question_id, $option_id]);
-    }
-
-    $conn->commit();
-} catch (Exception $e) {
-    $conn->rollback();
-    die("Error saving quiz results: " . $e->getMessage());
-}
-
-// --- Redirect to a results page (for now, back to My Courses) ---
-// In a future step, you could create a dedicated results page.
-$_SESSION['quiz_result_message'] = "Quiz submitted! You scored {$total_score}/{$total_possible_marks} ({$percentage_score}%).";
-header("Location: ?page=my-courses");
-exit;
-?>
