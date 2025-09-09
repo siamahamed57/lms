@@ -21,7 +21,8 @@ if (isset($_GET['ajax'])) {
         'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
         'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
         'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
-        'manage-coupons' => __DIR__ . "/manage.php",
+        'manage-coupons' => __DIR__ . "/../api/coupons/manage.php",
+        'profile' => __DIR__ . "/../student/profile.php",
         'quiz' => __DIR__ . "/../student/quiz.php",
         'submit_quiz' => __DIR__ . "/../api/quizzes/submit_quiz.php",
         'my-courses' => __DIR__ . "/../student/my_courses.php",
@@ -65,7 +66,11 @@ if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 if ($section === 'manage-coupons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // This file contains logic for coupon management and will redirect.
-    include __DIR__ . '/manage-logic.php';
+    include __DIR__ . '/../api/coupons/manage-logic.php';
+}
+if ($section === 'profile' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // This file contains logic for profile updates and will redirect.
+    include __DIR__ . '/../student/profile-logic.php';
 }
 
 // Redirect to login if not logged in
@@ -73,9 +78,247 @@ if (!isset($_SESSION['user_id'])) {
     header("Location:account");
     exit;
 }
+$user_id = $_SESSION['user_id'];
 
 // Role
 $userRole = $_SESSION['user_role'] ?? 'student';
+
+// --- Profile Completion Check for Students ---
+$is_profile_complete = true; // Assume complete by default
+if ($userRole === 'student') {
+    $user_profile_data = db_select("SELECT phone, university, department FROM users WHERE id = ?", "i", [$user_id]);
+    $profile = $user_profile_data[0] ?? null;
+    if (!$profile || empty($profile['phone']) || empty($profile['university']) || empty($profile['department'])) {
+        $is_profile_complete = false;
+    }
+
+    // If profile is incomplete and user is trying to access a page other than the profile page or logout
+    if (!$is_profile_complete && $section !== 'profile' && $section !== 'logout') {
+    // Display a modern dark blocking modal and stop further page rendering
+    echo <<<HTML
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        .profile-enforce-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #030303ff 0%, #000000ff 100%);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .profile-enforce-modal {
+            background: linear-gradient(145deg, #1a1a2e2a 0%, #18191aff 100%);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        .profile-enforce-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
+        
+        .profile-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #b615ff, #7c3aed);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 32px rgba(182, 21, 255, 0.3);
+        }
+        
+        .profile-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+        
+        .profile-enforce-modal h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #ffffff;
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+        }
+        
+        .profile-enforce-modal p {
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .profile-enforce-modal a {
+            background: linear-gradient(135deg, #b615ff, #7c3aed);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 4px 14px 0 rgba(182, 21, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-enforce-modal a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .profile-enforce-modal a:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 28px 0 rgba(182, 21, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-enforce-modal a:hover::before {
+            opacity: 1;
+        }
+        
+        .profile-enforce-modal a:active {
+            transform: translateY(0);
+        }
+        
+        .pulse-dot {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(45deg, #10b981, #059669);
+            border-radius: 50%;
+            animation: pulse 3s infinite;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        
+        .pulse-dot::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 50%;
+            animation: pulse 3s infinite reverse;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dotGrid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 30px); }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(40px) scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .profile-enforce-modal {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+            
+            .profile-enforce-modal h2 {
+                font-size: 1.5rem;
+            }
+            
+            .profile-enforce-modal a {
+                padding: 0.875rem 2rem;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+    <div class="profile-enforce-overlay">
+        <div class="profile-enforce-modal">
+            <div class="pulse-dot"></div>
+            <div class="profile-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <h2>Complete Your Profile</h2>
+            <p>Unlock full access to your personalized dashboard and premium course content by completing your profile.</p>
+            <a href="?page=profile">
+                Complete Profile
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+HTML;
+    exit(); // Stop the script to prevent the requested page from loading
+}
+}
 
 // Menus
 $adminMenu = [
@@ -127,6 +370,14 @@ $studentMenu = [
     'support' => ['icon' => 'fas fa-headset', 'text' => 'Support', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
     'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
+
+// If student profile is not complete, show only essential menu items
+if ($userRole === 'student' && !$is_profile_complete) {
+    $studentMenu = [
+        'profile' => $studentMenu['profile'], // Keep the original profile item
+        'logout' => $studentMenu['logout']   // Keep the original logout item
+    ];
+}
 
 // Active menu based on role
 $activeMenu = ($userRole === 'admin') ? $adminMenu : (($userRole === 'instructor') ? $instructorMenu : $studentMenu);
@@ -269,10 +520,11 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
                     'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
                     'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
-                    'manage-coupons' => __DIR__ . "/manage.php",
+                    'manage-coupons' => __DIR__ . "/../api/coupons/manage.php",
                     'quiz' => __DIR__ . "/../student/quiz.php",
                     'submit_quiz' => __DIR__ . "/../api/quizzes/submit_quiz.php",
                     'my-courses' => __DIR__ . "/../student/my_courses.php",
+                    'profile' => __DIR__ . "/../student/profile.php",
                     'lesson' => __DIR__ . "/../student/lesson.php",
                     'certificate' => __DIR__ . "/../student/certificate.php",
                     'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",

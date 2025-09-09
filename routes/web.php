@@ -10,7 +10,7 @@ $dashboard_pages = [
     'logout',
     'account',
     'enroll',
-
+    'profile',
     // Dashboard sections loaded via AJAX
     'overview',
     'users',
@@ -107,6 +107,13 @@ switch ($route) {
     case 'register':
     case 'login': // Consolidate login to account page
         include 'pages/account.php';
+        break;
+
+    case 'profile':
+        include 'student/profile.php';
+        break;
+    case 'my-courses':
+        include 'student/my_courses.php';
         break;
     case 'course_details':
         include './api/courses/detail.php';
