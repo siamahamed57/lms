@@ -484,7 +484,7 @@ foreach ($curriculum_items as $item) {
                                 $<?= htmlspecialchars(number_format($course['price'], 2)) ?>
                             </div>
                             <?php if ($is_enrolled && $first_lesson_id): ?>
-                                <a href="?_page=lesson&id=<?= $first_lesson_id ?>" class="enroll-button block">
+                                <a href="dashboard?page=my-courses" class="enroll-button block">
                                     <button class="btn-primary w-full py-4 px-6 rounded-xl text-lg font-semibold text-white relative overflow-hidden group" style="background: linear-gradient(135deg, var(--success), #15803d);">
                                         <span class="relative z-10 flex items-center justify-center">
                                             <i class="fas fa-arrow-right mr-2"></i>
