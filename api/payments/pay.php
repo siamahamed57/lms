@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../../includes/db.php';
 
 // --- Authorization & Course ID Check ---
@@ -20,8 +23,42 @@ if (empty($course_data)) {
 }
 $course = $course_data[0];
 
+// Clear any stale coupon from session on page load
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    unset($_SESSION['applied_coupon']);
+}
+
 // --- Handle Form Submission ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    global $conn;
+    $original_price = $course['price'];
+    $final_price = $original_price;
+    $applied_coupon_id = null;
+
+    // Re-validate coupon from session on server-side before processing
+    if (isset($_SESSION['applied_coupon']) && $_SESSION['applied_coupon']['course_id'] == $course_id) {
+        $coupon_session = $_SESSION['applied_coupon'];
+        $coupon_data = db_select("SELECT * FROM coupons WHERE id = ? AND status = 'active'", 'i', [$coupon_session['id']]);
+        
+        if ($coupon_data) {
+            $coupon_db = $coupon_data[0];
+            $is_valid = true;
+            if ($coupon_db['expires_at'] && strtotime($coupon_db['expires_at']) < time()) $is_valid = false;
+            if ($coupon_db['usage_limit'] !== null && $coupon_db['times_used'] >= $coupon_db['usage_limit']) $is_valid = false;
+
+            if ($is_valid) {
+                $discount = 0;
+                if ($coupon_db['type'] === 'fixed') {
+                    $discount = $coupon_db['value'];
+                } else { // percentage
+                    $discount = ($coupon_db['value'] / 100) * $original_price;
+                }
+                $final_price = max(0, $original_price - $discount);
+                $applied_coupon_id = $coupon_db['id'];
+            }
+        }
+    }
+
     $payment_method = $_POST['payment_method'] ?? '';
 
     if ($payment_method === 'ssl') {
@@ -29,20 +66,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ssl.php?course_id=" . $course_id);
         exit;
     } elseif ($payment_method === 'offline') {
-        // Check if the user is already enrolled to prevent duplicates
         $is_enrolled = db_select("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ?", 'ii', [$user_id, $course_id]);
 
         if (empty($is_enrolled)) {
-            // Set an expiration date (e.g., 1 year from now)
-            $expires_at = date('Y-m-d H:i:s', strtotime('+1 year'));
-            // Enroll the user in the database. The 'status' column will use its default 'active' value.
-            db_execute("INSERT INTO enrollments (student_id, course_id, progress, expires_at) VALUES (?, ?, ?, ?)", 'iids', [$user_id, $course_id, 0.00, $expires_at]);
+            $conn->begin_transaction();
+            try {
+                $expires_at = date('Y-m-d H:i:s', strtotime('+1 year'));
+                db_execute("INSERT INTO enrollments (student_id, course_id, expires_at) VALUES (?, ?, ?)", 'iis', [$user_id, $course_id, $expires_at]);
+                if ($applied_coupon_id) {
+                    db_execute("UPDATE coupons SET times_used = times_used + 1 WHERE id = ?", 'i', [$applied_coupon_id]);
+                }
+                $conn->commit();
+            } catch (Exception $e) {
+                $conn->rollback();
+                die("An error occurred during enrollment. Please try again.");
+            }
         }
-
-        // Set a session flag to trigger the success popup on the next page load
+        unset($_SESSION['applied_coupon']);
         $_SESSION['show_enroll_popup'] = true;
-        
-        // Redirect back to this page with a success status to trigger the JS
         header("Location: ?_page=pay&course_id=" . $course_id . "&status=success");
         exit;
     }
@@ -134,11 +175,25 @@ if (isset($_GET['status']) && $_GET['status'] === 'success' && isset($_SESSION['
                         <span>Subtotal</span>
                         <span>৳<?= htmlspecialchars(number_format($course['price'], 2)) ?></span>
                     </div>
+                    <div id="discount-row" class="hidden justify-between text-green-400">
+                        <span>Discount</span>
+                        <span id="discount-amount">- ৳0.00</span>
+                    </div>
                     <div class="flex justify-between text-white font-bold text-lg">
                         <span>Total</span>
-                        <span>৳<?= htmlspecialchars(number_format($course['price'], 2)) ?></span>
+                        <span id="total-price">৳<?= htmlspecialchars(number_format($course['price'], 2)) ?></span>
                     </div>
                 </div>
+                <!-- Coupon Form -->
+                <div class="border-t border-gray-700 pt-4 mt-4" id="coupon-form-container">
+                    <label for="coupon-code" class="text-sm font-medium text-gray-300">Have a coupon?</label>
+                    <div class="flex space-x-2 mt-2">
+                        <input type="text" id="coupon-code" name="coupon_code_field" class="block w-full bg-gray-900/50 border border-gray-600 rounded-md py-2 px-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter coupon code" style="text-transform:uppercase">
+                        <button type="button" id="apply-coupon-btn" class="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500">Apply</button>
+                    </div>
+                    <p id="coupon-message" class="text-sm mt-2"></p>
+                </div>
+
             </div>
 
             <!-- Right Side: Payment Method -->
@@ -185,15 +240,72 @@ if (isset($_GET['status']) && $_GET['status'] === 'success' && isset($_SESSION['
         </div>
     </div>
 
-    <?php if ($show_popup): ?>
     <script>
-        // This script runs only after a successful offline enrollment
         document.addEventListener('DOMContentLoaded', function() {
+            // This script handles coupon application and success popups
+            const applyBtn = document.getElementById('apply-coupon-btn');
+            const couponCodeInput = document.getElementById('coupon-code');
+            const couponMessage = document.getElementById('coupon-message');
+            const originalPrice = <?= $course['price'] ?>;
+
+            applyBtn.addEventListener('click', function() {
+                const code = couponCodeInput.value.trim();
+                if (!code) {
+                    couponMessage.textContent = 'Please enter a coupon code.';
+                    couponMessage.className = 'text-sm mt-2 text-red-400';
+                    return;
+                }
+
+                applyBtn.disabled = true;
+                applyBtn.textContent = 'Applying...';
+
+                fetch('./pages/apply_coupon.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        coupon_code: code,
+                        course_id: <?= $course_id ?>
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        couponMessage.textContent = data.message;
+                        couponMessage.className = 'text-sm mt-2 text-green-400';
+                        
+                        document.getElementById('discount-row').classList.remove('hidden');
+                        document.getElementById('discount-row').classList.add('flex');
+                        document.getElementById('discount-amount').textContent = `- ৳${data.discount_amount.toFixed(2)}`;
+                        document.getElementById('total-price').textContent = `৳${data.new_price.toFixed(2)}`;
+
+                        couponCodeInput.disabled = true;
+                        applyBtn.textContent = 'Applied';
+                    } else {
+                        couponMessage.textContent = data.message;
+                        couponMessage.className = 'text-sm mt-2 text-red-400';
+                        applyBtn.disabled = false;
+                        applyBtn.textContent = 'Apply';
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch Error:', error);
+                    couponMessage.textContent = 'An error occurred. Please try again.';
+                    couponMessage.className = 'text-sm mt-2 text-red-400';
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply';
+                });
+            });
+
+            <?php if ($show_popup): ?>
             alert('you successfully enroll this course');
             window.location.href = 'dashboard';
+            <?php endif; ?>
         });
-    </script>
-    <?php endif; ?>
-
+        </script>
 </body>
 </html>

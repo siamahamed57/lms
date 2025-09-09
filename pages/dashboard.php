@@ -21,6 +21,7 @@ if (isset($_GET['ajax'])) {
         'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
         'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
         'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
+        'manage-coupons' => __DIR__ . "/manage.php",
         'quiz' => __DIR__ . "/../student/quiz.php",
         'submit_quiz' => __DIR__ . "/../api/quizzes/submit_quiz.php",
         'my-courses' => __DIR__ . "/../student/my_courses.php",
@@ -62,6 +63,10 @@ if ($section === 'manage' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // This file contains logic for update/delete and will redirect if successful.
     include __DIR__ . '/../api/courses/manage-logic.php';
 }
+if ($section === 'manage-coupons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // This file contains logic for coupon management and will redirect.
+    include __DIR__ . '/manage-logic.php';
+}
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
@@ -75,19 +80,24 @@ $userRole = $_SESSION['user_role'] ?? 'student';
 // Menus
 $adminMenu = [
     'overview' => ['icon' => 'fas fa-chart-pie', 'text' => 'Overview', 'gradient' => 'linear-gradient(135deg, #b915ff, #8b5cf6)'],
+
     'users' => ['icon' => 'fas fa-users-cog', 'text' => 'User Management', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
-    'create-course' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Course', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
-    'create-lesson' => ['icon' => 'fas fa-file-alt', 'text' => 'Create Lesson', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
-    'enrollment-management' => ['icon' => 'fas fa-user-plus', 'text' => 'Enroll Students', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
-    'create-quiz' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Quiz', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
-    'manage' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
-    'manage-lessons' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Lessons', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
-    'manage-quizzes' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Quizzes', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
-    'instructors' => ['icon' => 'fas fa-chalkboard-teacher', 'text' => 'Instructors', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'students' => ['icon' => 'fas fa-user-graduate', 'text' => 'Students', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
-    'content' => ['icon' => 'fas fa-file-video', 'text' => 'Content', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
-    'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+    'instructors' => ['icon' => 'fas fa-chalkboard-teacher', 'text' => 'Instructors', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
+    'enrollment-management' => ['icon' => 'fas fa-user-plus', 'text' => 'Enroll Students', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'communication' => ['icon' => 'fas fa-comments', 'text' => 'Communication', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
+
+    'create-course' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Course', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
+    'manage' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
+    'create-lesson' => ['icon' => 'fas fa-file-alt', 'text' => 'Create Lesson', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+    'manage-lessons' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Lessons', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
+    'create-quiz' => ['icon' => 'fas fa-question-circle', 'text' => 'Create Quiz', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
+    'manage-quizzes' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Quizzes', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
+    'content' => ['icon' => 'fas fa-file-video', 'text' => 'Content', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
+    'manage-coupons' => ['icon' => 'fas fa-tags', 'text' => 'Create Coupons', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
+
+    'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
+
     'settings' => ['icon' => 'fas fa-cogs', 'text' => 'Settings', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)'],
     'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
@@ -259,6 +269,7 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
                     'create-quiz' => __DIR__ . "/../api/quizzes/create.php",
                     'manage-quizzes' => __DIR__ . "/../api/quizzes/manage.php",
+                    'manage-coupons' => __DIR__ . "/manage.php",
                     'quiz' => __DIR__ . "/../student/quiz.php",
                     'submit_quiz' => __DIR__ . "/../api/quizzes/submit_quiz.php",
                     'my-courses' => __DIR__ . "/../student/my_courses.php",
