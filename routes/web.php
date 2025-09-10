@@ -10,7 +10,8 @@ $dashboard_pages = [
     'logout',
     'account',
     'enroll',
-    'profile',
+    'pay',
+    'course_details',
     // Dashboard sections loaded via AJAX
     'overview',
     'users',
@@ -108,13 +109,6 @@ switch ($route) {
     case 'login': // Consolidate login to account page
         include 'pages/account.php';
         break;
-
-    case 'profile':
-        include 'student/profile.php';
-        break;
-    case 'my-courses':
-        include 'student/my_courses.php';
-        break;
     case 'course_details':
         include './api/courses/detail.php';
         break;
@@ -125,7 +119,7 @@ switch ($route) {
         include './api/enrollments/progress.php';
         break;
     case 'lesson':
-        include './student/lesson.php';
+        include './api/lessons/lesson.php';
         break;
     case 'quiz':
         include './api/quizzes/quiz.php';
