@@ -29,6 +29,11 @@ if (isset($_GET['ajax'])) {
         'certificate' => __DIR__ . "/../student/certificate.php",
         'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",
         'users' => __DIR__ . "/../api/users/user-management.php",
+        'referral-settings' => __DIR__ . "/../admin/referral_settings.php",
+        'referral-report' => __DIR__ . "/../admin/referrals.php",
+        'withdrawals' => __DIR__ . "/../admin/withdrawals.php",
+        'my-referrals' => __DIR__ . "/../student/referrals.php",
+        'my-wallet' => __DIR__ . "/../student/wallet.php",
     ];
     $page_path = $page_map[$section] ?? '';
     if ($page_path && file_exists($page_path)) { include $page_path; } 
@@ -68,6 +73,22 @@ if ($section === 'manage-coupons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/manage-logic.php';
 }
 
+// Handle referral settings form submissions
+if ($section === 'referral-settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../admin/referral_settings-logic.php';
+}
+
+// Handle student referral generation
+if ($section === 'my-referrals' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../student/referrals-logic.php';
+}
+
+// Handle student withdrawal request & admin withdrawal update
+if (($section === 'my-wallet' || $section === 'withdrawals') && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $logic_file = $section === 'my-wallet' ? __DIR__ . '/../student/wallet.php' : __DIR__ . '/../admin/withdrawals.php';
+    include $logic_file;
+}
+
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location:account");
@@ -94,7 +115,10 @@ $adminMenu = [
     'create-quiz' => ['icon' => 'fas fa-question-circle', 'text' => 'Create Quiz', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'manage-quizzes' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Quizzes', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
     'content' => ['icon' => 'fas fa-file-video', 'text' => 'Content', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
-    'manage-coupons' => ['icon' => 'fas fa-tags', 'text' => 'Create Coupons', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
+    'manage-coupons' => ['icon' => 'fas fa-tags', 'text' => 'Coupons', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
+    'referral-settings' => ['icon' => 'fas fa-cogs', 'text' => 'Referral Settings', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
+    'referral-report' => ['icon' => 'fas fa-bullhorn', 'text' => 'Referral Report', 'gradient' => 'linear-gradient(135deg, #6366f1, #4f46e5)'],
+    'withdrawals' => ['icon' => 'fas fa-hand-holding-usd', 'text' => 'Withdrawals', 'gradient' => 'linear-gradient(135deg, #ec4899, #db2777)'],
 
     'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
 
@@ -122,6 +146,8 @@ $studentMenu = [
     'my-courses' => ['icon' => 'fas fa-book-reader', 'text' => 'My Courses', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'browse-courses' => ['icon' => 'fas fa-search', 'text' => 'Explore', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
     'grades' => ['icon' => 'fas fa-graduation-cap', 'text' => 'Grades', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
+    'my-referrals' => ['icon' => 'fas fa-share-alt', 'text' => 'My Referrals', 'gradient' => 'linear-gradient(135deg, #6366f1, #4f46e5)'],
+    'my-wallet' => ['icon' => 'fas fa-wallet', 'text' => 'My Wallet', 'gradient' => 'linear-gradient(135deg, #ec4899, #db2777)'],
     'certificates' => ['icon' => 'fas fa-award', 'text' => 'Certificates', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
     'profile' => ['icon' => 'fas fa-user-cog', 'text' => 'Profile', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
     'support' => ['icon' => 'fas fa-headset', 'text' => 'Support', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
@@ -277,6 +303,11 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'certificate' => __DIR__ . "/../student/certificate.php",
                     'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",
                     'users' => __DIR__ . "/../api/users/user-management.php",
+                    'referral-settings' => __DIR__ . "/../admin/referral_settings.php",
+                    'referral-report' => __DIR__ . "/../admin/referrals.php",
+                    'withdrawals' => __DIR__ . "/../admin/withdrawals.php",
+                    'my-referrals' => __DIR__ . "/../student/referrals.php",
+                    'my-wallet' => __DIR__ . "/../student/wallet.php",
                 ];
                 $page_path = $page_map[$section] ?? '';
 
