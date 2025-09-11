@@ -24,6 +24,12 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
 </head>
 <body data-theme="dark">
 
+<?php 
+// Include the preloader. It will only show on pages that use this header.
+// The dashboard does not use this header, so it won't have the preloader.
+include 'preloader.php'; 
+?>
+
 <header class="sticky top-0 z-50 glass-header"> 
     <div class="container mx-auto max-w-7xl px-4 py-4 flex justify-between items-center"> 
         <div class="logo"> 
