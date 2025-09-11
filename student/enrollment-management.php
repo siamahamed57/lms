@@ -52,49 +52,149 @@ $enrollments = db_select($sql_select . $sql_where . " ORDER BY e.enrolled_at DES
 
 ?>
 <link rel="stylesheet" href="assets/css/course-manage.css"> <!-- Re-using styles -->
-<style>
-    .enrollment-form-container {
-        background: var(--surface-light);
-        padding: 2rem;
-        border-radius: 16px;
-        margin-bottom: 2rem;
-        border: 1px solid var(--border);
+<style> 
+/* ---- [ Import Modern Font & Icons ] ---- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+/* ---- [ CSS Variables for Easy Theming ] ---- */
+:root {
+    --primary-color: #b915ff;
+    --primary-hover-color: #8b00cc;
+    --background-start: #231134;
+    --background-end: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.07);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --input-bg: rgba(0, 0, 0, 0.3);
+
+    /* Status & Alert Colors */
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+}
+
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* ---- [ Header & Titles ] ---- */
+.header { margin-bottom: 2rem; }
+.title { font-size: 2.25rem; font-weight: 600; }
+
+/* ---- [ Enrollment Form & Filter Container ] ---- */
+.enrollment-form-container, .search-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+.form-section-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+.form-grid, .filter-container {
+    display: grid;
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+.form-grid { grid-template-columns: 1fr 1fr 200px; }
+.filter-container { grid-template-columns: 1fr 200px 150px; }
+
+/* ---- [ Form Inputs ] ---- */
+.form-group, .search-input, .form-group select {
+    width: 100%; padding: 0.75rem 1rem; background: var(--input-bg);
+    border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);
+    font-family: 'Poppins', sans-serif; transition: all 0.3s ease;
+}
+.form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+.form-group select { appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0a0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;
+}
+.search-input::placeholder { color: var(--text-secondary); }
+.search-input:focus, .form-group select:focus {
+    outline: none; border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(185, 21, 255, 0.2);
+}
+
+/* ---- [ Buttons ] ---- */
+.btn-enroll {
+    padding: 0.75rem 1.5rem; border: none; border-radius: 8px; background-color: var(--primary-color);
+    color: #fff; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+    white-space: nowrap;
+}
+.btn-enroll:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(185, 21, 255, 0.2); }
+
+/* ---- [ Table Styling ] ---- */
+.table-container {
+    background: var(--glass-bg); backdrop-filter: blur(15px);
+    border-radius: 16px; border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); padding: 0;
+    overflow: hidden;
+}
+.table { width: 100%; border-collapse: collapse; }
+.table-header { background: rgba(255, 255, 255, 0.05); }
+.table-header th {
+    padding: 1rem 1.5rem; text-align: left; font-weight: 600;
+    color: var(--text-secondary); font-size: 0.8rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.table-body { display: block; max-height: 70vh; overflow-y: auto; }
+.table-row:hover, table tbody tr:hover { background-color: rgba(185, 21, 255, 0.08); }
+.table-cell { padding: 1rem 1.5rem; vertical-align: middle; border-bottom: 1px solid var(--glass-border); }
+table tbody tr:last-child .table-cell { border-bottom: none; }
+.lesson-title { font-weight: 600; font-size: 1.05rem; }
+.course-name { font-size: 0.9rem; color: var(--text-secondary); }
+.empty-state { text-align: center; color: var(--text-secondary); padding: 3rem; }
+
+/* ---- [ Status Badges & Actions ] ---- */
+.status-badge { padding: 0.3em 0.8em; border-radius: 1rem; font-size: 0.8rem; font-weight: 600; }
+.status-published { background-color: rgba(40, 167, 69, 0.3); color: #7ee29a; }
+.status-archived { background-color: rgba(220, 53, 69, 0.3); color: #ffacb3; }
+
+.action-btn {
+    background: transparent; border: 1px solid var(--glass-border);
+    color: var(--text-secondary); padding: 0.4rem 0.8rem; border-radius: 6px;
+    cursor: pointer; transition: all 0.3s ease;
+    display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Poppins', sans-serif;
+}
+.action-btn i { font-size: 0.9em; }
+.action-btn:hover { background: var(--input-bg); color: var(--text-primary); }
+.action-edit:hover { border-color: var(--color-success); color: var(--color-success); }
+.action-delete:hover { border-color: var(--color-danger); color: var(--color-danger); }
+
+/* ---- [ Alerts ] ---- */
+.alert { padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid transparent; }
+.alert-success { background-color: rgba(40, 167, 69, 0.15); border-color: rgba(40, 167, 69, 0.4); color: #a3ffb8; }
+.alert-error { background-color: rgba(220, 53, 69, 0.15); border-color: rgba(220, 53, 69, 0.4); color: #ffacb3; }
+
+/* ---- [ Responsive Design ] ---- */
+@media (max-width: 992px) {
+    .form-grid, .filter-container { grid-template-columns: 1fr; }
+    .btn-enroll { width: 100%; }
+}
+@media (max-width: 768px) {
+    .container { padding: 1rem; }
+    .table-header { display: none; }
+    .table-body, .table-row, .table-cell { display: block; }
+    .table tbody tr { border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 1rem; padding: 1rem; display: block; }
+    .table-cell { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); }
+    .table-cell:last-child { border-bottom: none; }
+    .table-cell::before {
+        content: attr(data-label); font-weight: 500;
+        color: var(--text-secondary); padding-right: 1rem;
     }
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 200px;
-        gap: 1.5rem;
-        align-items: end;
-    }
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    .form-group select, .form-group input {
-        width: 100%;
-        padding: 0.75rem;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-    }
-    .btn-enroll {
-        width: 100%;
-        padding: 0.75rem;
-        border-radius: 8px;
-        background: var(--gradient);
-        color: white;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-    }
-    .filter-container {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-    /* Custom styles for enrollment status */
-    .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .status-blocked { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+}
+
 </style>
 
 <div class="container">

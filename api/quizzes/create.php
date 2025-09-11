@@ -71,54 +71,156 @@ $courses = db_select($coursesQuery, $queryTypes, $queryParams);
 
 ?>
 <!-- Using styles from lesson create page for consistency -->
-<style>
-    /* Re-using styles from lesson creation for consistency */
-    :root {
-        --primary-color: #8b5cf6; --primary-light: #a78bfa; --secondary-color: #f3f4f6;
-        --text-color: #374151; --placeholder-color: #9ca3af; --bg-color: #e5e7eb;
-        --card-bg: #ffffff; --border-color: #d1d5db; --shadow-light: rgba(0, 0, 0, 0.08);
-        --shadow-dark: rgba(0, 0, 0, 0.12);
-    }
-    .app-container { width: 1280px; height: 820px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 20px var(--shadow-light), 0 6px 6px var(--shadow-dark); overflow: hidden; display: flex; flex-direction: column; }
-    .form-header { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); color: white; padding: 1.5rem 2rem; }
-    .form-header h1 { font-size: 1.75rem; font-weight: 700; }
-    .form-header p { font-size: 0.9rem; opacity: 0.9; }
-    .form-container { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
-    .form-section-title { font-size: 1.2rem; font-weight: 600; color: var(--primary-color); margin: 1.5rem 0 1rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
-    .form-section-title:first-of-type { margin-top: 0; }
-    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-    .form-group { margin-bottom: 1.2rem; }
-    label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem; color: #4b5563; }
-    input:not([type="checkbox"]), textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; color: var(--text-color); background-color: var(--secondary-color); transition: all 0.3s ease-in-out; }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); background-color: #fff; }
-    .help-text { font-size: 0.75rem; color: var(--placeholder-color); margin-top: 0.5rem; }
-    .required::after { content: '*'; color: #ef4444; margin-left: 4px; }
-    .btn-group { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
-    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease-in-out; }
-    .btn-primary { background: var(--primary-color); color: white; }
-    .btn-primary:hover { background: var(--primary-light); transform: translateY(-2px); }
-    .btn-secondary { background: var(--secondary-color); color: var(--text-color); border: 1px solid var(--border-color); }
-    .alert { padding: 0.8rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem; }
-    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .alert-error { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-    .checkbox-group { display: flex; align-items: center; gap: 0.75rem; }
-    .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary-color); }
-    /* Styles for question management */
-    .question-list { list-style: none; padding: 0; margin-top: 1rem; }
-    .question-list li { background: #f9fafb; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid var(--primary-light); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; }
-    .question-list li:hover { background: #f3f4f6; }
-    .question-actions { display: flex; align-items: center; gap: 1rem; }
-    .action-btn-edit, .action-btn-delete { font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: none; padding: 4px 8px; border-radius: 4px; border: none; }
-    .action-btn-edit { color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
-    .action-btn-delete { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); }
-    .question-list .q-type { font-size: 0.8rem; color: #6b7280; background: #e5e7eb; padding: 2px 8px; border-radius: 10px; }
-    .mcq-option-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .mcq-option-item input[type="radio"] { flex-shrink: 0; }
-    .mcq-option-item input[type="text"] { flex-grow: 1; }
-    .remove-option-btn { background: #fee2e2; color: #b91c1c; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; line-height: 24px; text-align: center; }
-    #add-mcq-option-btn { margin-top: 10px; padding: 5px 10px; font-size: 0.8rem; background: #e5e7eb; border: 1px solid #d1d5db; }
-</style>
+<style> 
+/* ---- [ Import Modern Font & Icons ] ---- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Font Awesome for icons */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 
+/* ---- [ CSS Variables for Easy Theming ] ---- */
+:root {
+    --primary-color: #b915ff;
+    --primary-hover-color: #8b00cc;
+    --secondary-color: rgba(255, 255, 255, 0.1);
+    --secondary-hover-color: rgba(255, 255, 255, 0.2);
+    --background-start: #231134;
+    --background-end: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.07);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --input-bg: rgba(0, 0, 0, 0.3);
+
+    /* Status & Alert Colors */
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+}
+
+
+.app-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* ---- [ Form Header & Container ] ---- */
+.form-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+.form-header h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.form-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+.form-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    padding: 2.5rem;
+}
+.form-section-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* ---- [ Form Elements Styling ] ---- */
+.form-grid { display: grid; gap: 1.5rem; grid-template-columns: 1fr 1fr; margin-bottom: 1.5rem; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+.form-group label.required::after { content: ' *'; color: var(--primary-color); }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.75rem 1rem; background: var(--input-bg);
+    border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-primary);
+    font-family: 'Poppins', sans-serif; transition: all 0.3s ease;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(185, 21, 255, 0.2);
+}
+.form-group select {
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0a0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;
+}
+.help-text { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+/* ---- [ Custom Checkbox Groups ] ---- */
+.checkbox-group { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
+.checkbox-group input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--primary-color);
+}
+.checkbox-group label { margin: 0; }
+
+/* ---- [ Question Management Specifics ] ---- */
+.question-list { list-style: none; padding: 0; }
+.question-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem; border-radius: 8px;
+    border: 1px solid var(--glass-border); background: var(--secondary-color);
+    margin-bottom: 1rem; transition: background-color 0.3s;
+}
+.question-list li:hover { background-color: var(--secondary-hover-color); }
+.question-actions { display: flex; align-items: center; gap: 1rem; }
+.q-type { font-size: 0.8rem; color: var(--text-secondary); background: var(--input-bg); padding: 0.2rem 0.6rem; border-radius: 4px; }
+.action-btn-edit, .action-btn-delete {
+    text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 0.4rem 0.8rem;
+    border-radius: 6px; cursor: pointer; transition: all 0.3s ease;
+}
+.action-btn-edit { border: 1px solid var(--primary-color); color: var(--primary-color); }
+.action-btn-edit:hover { background-color: var(--primary-color); color: #fff; }
+.action-btn-delete { border: 1px solid var(--color-danger); color: var(--color-danger); background: transparent; }
+.action-btn-delete:hover { background-color: var(--color-danger); color: #fff; }
+
+/* ---- [ MCQ & True/False Options ] ---- */
+.mcq-option-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+.mcq-option-item input[type="radio"] { width: 20px; height: 20px; accent-color: var(--primary-color); }
+.mcq-option-item input[type="text"] { flex-grow: 1; }
+.remove-option-btn {
+    background: transparent; border: 1px solid var(--color-danger); color: var(--color-danger);
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+}
+.remove-option-btn:hover { background-color: var(--color-danger); color: #fff; }
+#true_false-options-container .checkbox-group { gap: 2rem; margin-top: 0.5rem; }
+
+/* ---- [ Buttons ] ---- */
+.btn-group { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+.btn { text-decoration: none; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+.btn-primary { background-color: var(--primary-color); color: #fff; }
+.btn-primary:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(185, 21, 255, 0.2); }
+.btn-secondary { background: var(--secondary-color); color: var(--text-primary); border: 1px solid var(--glass-border); }
+.btn-secondary:hover { background: var(--secondary-hover-color); }
+
+/* ---- [ Alerts ] ---- */
+.alert { padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid transparent; }
+.alert-success { background-color: rgba(40, 167, 69, 0.15); border-color: rgba(40, 167, 69, 0.4); color: #a3ffb8; }
+.alert-error { background-color: rgba(220, 53, 69, 0.15); border-color: rgba(220, 53, 69, 0.4); color: #ffacb3; }
+.alert-error ul { list-style: none; padding-left: 0; }
+
+/* ---- [ Responsive Design ] ---- */
+@media (max-width: 768px) {
+    .app-container { padding: 1rem; }
+    .form-container { padding: 1.5rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-header h1 { font-size: 2rem; }
+    .question-list li { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+    .question-actions { width: 100%; justify-content: flex-end; }
+    .btn-group { flex-direction: column; }
+    .btn { width: 100%; text-align: center; }
+}
+
+</style>
 <div class="app-container">
     <?php if ($quiz_id > 0 && $quiz): ?>
         <!-- UI for Adding Questions to an Existing Quiz -->

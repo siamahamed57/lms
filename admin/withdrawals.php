@@ -32,6 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_withdrawal']))
                 $wallet = db_select("SELECT id FROM student_wallets WHERE student_id = ?", 'i', [$request['student_id']])[0];
                 $desc = "Withdrawal request #$request_id rejected. Amount refunded.";
                 db_execute("INSERT INTO wallet_transactions (wallet_id, amount, type, description) VALUES (?, ?, 'withdrawal_rejected', ?)", 'ids', [$wallet['id'], $request['amount'], $desc]);
+            } elseif ($status == 'approved') {
+                // Update the original transaction log to reflect approval for the student's history.
+                db_execute(
+                    "UPDATE wallet_transactions SET description = ? WHERE related_id = ? AND type = 'withdrawal_request'",
+                    'si', ["Withdrawal request #{$request_id} approved and processed.", $request_id]
+                );
             }
             $_SESSION['success_message'] = "Withdrawal request updated.";
         }
@@ -54,6 +60,174 @@ if ($filter !== 'all') {
     $requests = db_select($sql);
 }
 ?>
+
+<style> 
+/* ---- [ Import Modern Font ] ---- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+/* ---- [ CSS Variables for Easy Theming ] ---- */
+:root {
+    --primary-color: #b915ff;
+    --primary-hover-color: #8b00cc;
+    --background-start: #231134;
+    --background-end: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.07);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --input-bg: rgba(0, 0, 0, 0.3);
+
+    /* Status Colors */
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+    --color-warning: #ffc107;
+}
+
+
+
+h3 {
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+/* ---- [ Navigation Tabs ] ---- */
+.nav-tabs {
+    display: flex;
+   
+}
+
+
+/* ---- [ Glass Card Effect ] ---- */
+.card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.card-body {
+    padding: 0; /* Remove padding to allow table to fill it */
+}
+
+.mt-3 {
+    margin-top: 1.5rem !important;
+}
+
+/* ---- [ Table Styling ] ---- */
+.table-responsive-wrapper {
+    overflow-x: auto;
+    padding: 0.5rem; /* Add padding here instead of card-body */
+}
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table th, .table td {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--glass-border);
+}
+.table thead th {
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(185, 21, 255, 0.1);
+}
+.table td small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85em;
+    margin-top: 0.25rem;
+}
+pre {
+    background: var(--input-bg);
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-family: monospace;
+    white-space: pre-wrap; /* Allow long details to wrap */
+    color: var(--text-secondary);
+}
+
+/* ---- [ Badges ] ---- */
+.badge {
+    display: inline-block;
+    padding: 0.4em 0.7em;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 1rem;
+    color: #fff;
+}
+.badge-success { background-color: rgba(40, 167, 69, 0.5); }
+.badge-danger { background-color: rgba(220, 53, 69, 0.5); }
+.badge-warning { background-color: rgba(255, 193, 7, 0.5); color: #111; }
+
+/* ---- [ Inline Action Form ] ---- */
+.form-group { margin-bottom: 0.5rem; }
+.form-control-sm {
+    width: 100%;
+    padding: 0.4rem 0.8rem;
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+}
+select.form-control-sm {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0a0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 16px 12px;
+    padding-right: 2rem;
+}
+.btn-sm {
+    width: 100%;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 0.875rem;
+}
+.btn-sm:hover {
+    background-color: var(--primary-hover-color);
+    transform: translateY(-1px);
+}
+
+/* ---- [ Alerts ] ---- */
+.alert-success {
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(40, 167, 69, 0.4);
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #a3ffb8;
+}
+
+/* ---- [ Responsive Design ] ---- */
+@media (max-width: 768px) {
+    body { padding: 1rem; }
+}
+
+</style>
 <h3>Manage Withdrawal Requests</h3>
 
 <ul class="nav nav-tabs">

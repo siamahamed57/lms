@@ -93,50 +93,205 @@ if (!function_exists('getStatusBadge')) {
 ?>
 <!-- This is a content fragment, not a full page. -->
 <link rel="stylesheet" href="assets/css/course-manage.css"> <!-- Re-using course management styles -->
-<style>
-    /* Re-using course management styles from your project */
-    :root {
-        --primary: #b915ff; --primary-light: #c84eff; --primary-dark: #9700e6;
-        --secondary: #1a1b23; --surface: #ffffff; --surface-light: #f8fafc;
-        --text: #1e293b; --text-light: #64748b; --border: #e2e8f0;
-        --success: #10b981; --warning: #f59e0b; --error: #ef4444;
+<style> 
+    /* ---- [ Import Modern Font & Icons ] ---- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Font Awesome for icons */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+/* ---- [ CSS Variables for Easy Theming ] ---- */
+:root {
+    --primary-color: #b915ff;
+    --primary-hover-color: #8b00cc;
+    --background-start: #231134;
+    --background-end: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.07);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --input-bg: rgba(0, 0, 0, 0.3);
+
+    /* Status & Alert Colors */
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+    --color-draft: #6c757d; /* Gray */
+}
+
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* ---- [ Header & Titles ] ---- */
+.header { margin-bottom: 2rem; }
+.title { font-size: 2.25rem; font-weight: 600; }
+
+/* ---- [ Search Container ] ---- */
+.search-container { margin-bottom: 2rem; }
+.search-box {
+    display: flex;
+    max-width: 500px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+.search-input {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    padding: 0.8rem 1.2rem;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+.search-input::placeholder { color: var(--text-secondary); }
+.search-input:focus { outline: none; }
+.search-btn {
+    border: none;
+    background: var(--primary-color);
+    color: #fff;
+    padding: 0 1.5rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+}
+.search-btn:hover { background-color: var(--primary-hover-color); }
+
+/* ---- [ Table Container Styling ] ---- */
+.table-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    padding: 0;
+    overflow: hidden;
+}
+.table { width: 100%; border-collapse: collapse; }
+.table-header { background: rgba(255, 255, 255, 0.05); }
+.table-header th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.table-body { display: block; max-height: 70vh; overflow-y: auto; }
+.table-row { border-bottom: 1px solid var(--glass-border); }
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background-color: rgba(185, 21, 255, 0.08); }
+.table-cell { padding: 1rem 1.5rem; vertical-align: middle; }
+.lesson-title { font-weight: 600; font-size: 1.05rem; }
+.course-name { font-size: 0.9rem; color: var(--text-secondary); }
+.empty-state { text-align: center; color: var(--text-secondary); padding: 3rem; }
+
+/* ---- [ Status Badges ] ---- */
+.status-badge {
+    padding: 0.3em 0.8em;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-published { background-color: rgba(40, 167, 69, 0.3); color: #7ee29a; }
+.status-draft { background-color: rgba(108, 117, 125, 0.3); color: #ced4da; }
+
+/* ---- [ Actions Buttons ] ---- */
+.actions { display: flex; gap: 0.5rem; }
+.action-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.action-btn:hover { background: var(--input-bg); color: var(--text-primary); }
+.action-edit:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.action-delete:hover { border-color: var(--color-danger); color: var(--color-danger); }
+
+/* ---- [ Inline Edit Form ] ---- */
+.edit-form-cell { padding: 2rem !important; background: rgba(0, 0, 0, 0.25); }
+.edit-form-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+}
+.edit-form-group { display: flex; flex-direction: column; }
+.edit-form-group[style*="grid-column"] { grid-column: span 4; }
+.edit-form-group label {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+.edit-form-group input, .edit-form-group select, .edit-form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+}
+.edit-form-group input:focus, .edit-form-group select:focus, .edit-form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(185, 21, 255, 0.2);
+}
+.edit-form-group textarea { resize: vertical; }
+.edit-form-group input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--primary-color);
+}
+.edit-form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+.btn-update {
+    padding: 0.75rem 1.5rem; border: none; border-radius: 8px; background-color: var(--primary-color);
+    color: #fff; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-update:hover { background-color: var(--primary-hover-color); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(185, 21, 255, 0.2); }
+.btn-cancel {
+    padding: 0.75rem 1.5rem; border-radius: 8px; background: transparent;
+    border: 1px solid var(--glass-border); color: var(--text-secondary);
+    font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-cancel:hover { background: var(--input-bg); color: var(--text-primary); }
+
+/* ---- [ Alerts ] ---- */
+.alert { padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid transparent; display: flex; align-items: center; }
+.alert-success { background-color: rgba(40, 167, 69, 0.15); border-color: rgba(40, 167, 69, 0.4); color: #a3ffb8; }
+.alert-error { background-color: rgba(220, 53, 69, 0.15); border-color: rgba(220, 53, 69, 0.4); color: #ffacb3; }
+.alert .fas { margin-right: 0.75rem; font-size: 1.2rem; }
+
+/* ---- [ Responsive Design ] ---- */
+@media (max-width: 992px) {
+    .edit-form-grid { grid-template-columns: 1fr 1fr; }
+    .edit-form-group[style*="grid-column"] { grid-column: span 2; }
+}
+@media (max-width: 768px) {
+    .container { padding: 1rem; }
+    .table-header { display: none; }
+    .table-body, .table-row, .table-cell { display: block; }
+    .table-row { border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 1rem; padding: 1rem; }
+    .table-cell { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); }
+    .table-cell:last-child { border-bottom: none; }
+    .table-cell::before {
+        content: attr(data-label);
+        font-weight: 500;
+        color: var(--text-secondary);
+        padding-right: 1rem;
     }
-    .container { max-width: 1280px; width: 100%; height: auto; margin: 0 auto; background: rgba(0, 0, 0, 0); padding: 0; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-    .title { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .alert { padding: 16px; margin-bottom: 24px; border-radius: 16px; font-weight: 600; border: 1px solid; }
-    .alert-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: var(--success); }
-    .alert-error { background: rgba(239, 68, 68, 0.1); color: var(--error); border-color: var(--error); }
-    .search-container { margin-bottom: 24px; }
-    .search-box { position: relative; width: 100%; }
-    .search-input { width: 100%; padding: 16px 60px 16px 24px; border: 2px solid var(--border); border-radius: 16px; font-size: 16px; background: var(--surface); transition: all 0.3s; outline: none; }
-    .search-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); border: none; padding: 12px 16px; border-radius: 12px; color: white; cursor: pointer; }
-    .table-container { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; height: 600px; position: relative; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table-header { background: linear-gradient(135deg, var(--surface-light) 0%, rgba(185, 21, 255, 0.05) 100%); position: sticky; top: 0; z-index: 10; }
-    .table-header th { padding: 20px 16px; text-align: left; font-weight: 700; color: var(--text); font-size: 14px; text-transform: uppercase; border-bottom: 2px solid var(--primary); }
-    .table-body { height: calc(600px - 60px); overflow-y: auto; display: block; }
-    .table-body table { width: 100%; }
-    .table-row { transition: all 0.3s ease; cursor: pointer; display: table-row; }
-    .table-cell { padding: 20px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; display: table-cell; }
-    .lesson-title { font-weight: 700; color: var(--text); margin-bottom: 4px; }
-    .course-name { color: var(--text-light); font-size: 14px; }
-    .status-badge { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; display: inline-block; }
-    .status-published { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-    .status-draft { background: rgba(107, 114, 128, 0.1); color: var(--text-light); }
-    .actions { display: flex; gap: 12px; }
-    .action-btn { padding: 8px 12px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; }
-    .action-edit { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-    .action-delete { background: rgba(239, 68, 68, 0.1); color: var(--error); }
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
-    .edit-form-cell { padding: 24px; background-color: #f7f8fc; border-bottom: 2px solid var(--primary); }
-    .edit-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
-    .edit-form-group label { display: block; font-weight: 600; font-size: 13px; color: var(--text-light); margin-bottom: 8px; }
-    .edit-form-group input, .edit-form-group select, .edit-form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white; }
-    .edit-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
-    .btn-update, .btn-cancel { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    .btn-update { background: var(--primary); color: white; }
-    .btn-cancel { background: #e2e8f0; color: #475569; }
+    .actions { justify-content: flex-end; }
+    .edit-form-grid { grid-template-columns: 1fr; }
+    .edit-form-group[style*="grid-column"] { grid-column: span 1; }
+}
 </style>
     <div class="container">
         <div class="header">
