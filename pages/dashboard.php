@@ -27,10 +27,11 @@ if (isset($_GET['ajax'])) {
         'my-courses' => __DIR__ . "/../student/my_courses.php",
         'lesson' => __DIR__ . "/../student/lesson.php",
         'certificate' => __DIR__ . "/../student/certificate.php",
-        'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",
+        'enrollment-management' => __DIR__ . "/../admin/enrollment-management.php",
         'users' => __DIR__ . "/../api/users/user-management.php",
         'referral-settings' => __DIR__ . "/../admin/referral_settings.php",
         'referral-report' => __DIR__ . "/../admin/referrals.php",
+        'reports' => __DIR__ . "/../admin/reports.php",
         'withdrawals' => __DIR__ . "/../admin/withdrawals.php",
         'my-referrals' => __DIR__ . "/../student/referrals.php",
         'my-wallet' => __DIR__ . "/../student/wallet.php",
@@ -61,7 +62,7 @@ if ($section === 'submit_quiz' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Handle enrollment management form submissions
 if ($section === 'enrollment-management' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    include __DIR__ . '/../student/enrollment-logic.php';
+    include __DIR__ . '/../admin/enrollment-logic.php';
 }
 
 // Handle lesson management form submissions
@@ -90,6 +91,11 @@ if ($section === 'instructor-settings' && $_SERVER['REQUEST_METHOD'] === 'POST')
 // Handle admin instructor withdrawal updates
 if ($section === 'instructor-payouts' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/../admin/instructor_withdrawals-logic.php';
+}
+
+// Handle user management form submissions
+if ($section === 'users' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../api/users/user-management-logic.php';
 }
 
 // Handle student referral generation
@@ -122,11 +128,7 @@ $adminMenu = [
     'overview' => ['icon' => 'fas fa-chart-pie', 'text' => 'Overview', 'gradient' => 'linear-gradient(135deg, #b915ff, #8b5cf6)'],
 
     'users' => ['icon' => 'fas fa-users-cog', 'text' => 'User Management', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
-    'students' => ['icon' => 'fas fa-user-graduate', 'text' => 'Students', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
-    'instructors' => ['icon' => 'fas fa-chalkboard-teacher', 'text' => 'Instructors', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'enrollment-management' => ['icon' => 'fas fa-user-plus', 'text' => 'Enroll Students', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
-    'communication' => ['icon' => 'fas fa-comments', 'text' => 'Communication', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
-
     'create-course' => ['icon' => 'fas fa-plus-circle', 'text' => 'Create Course', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'manage' => ['icon' => 'fas fa-book-open', 'text' => 'Course Management', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'create-lesson' => ['icon' => 'fas fa-file-alt', 'text' => 'Create Lesson', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
@@ -327,6 +329,7 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'users' => __DIR__ . "/../api/users/user-management.php",
                     'referral-settings' => __DIR__ . "/../admin/referral_settings.php",
                     'referral-report' => __DIR__ . "/../admin/referrals.php",
+                    'reports' => __DIR__ . "/../admin/reports.php",
                     'withdrawals' => __DIR__ . "/../admin/withdrawals.php",
                     'my-referrals' => __DIR__ . "/../student/referrals.php",
                     'my-wallet' => __DIR__ . "/../student/wallet.php",
