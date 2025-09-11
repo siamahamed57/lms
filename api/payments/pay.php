@@ -148,6 +148,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     db_execute("UPDATE coupons SET times_used = times_used + 1 WHERE id = ?", 'i', [$applied_coupon_id]);
                 }
 
+                // --- Handle Instructor Commission ---
+                if ($enrollment_id) {
+                    // 1. Get course and instructor details
+                    $course_details_sql = "SELECT c.instructor_id, u.commission_rate 
+                                           FROM courses c 
+                                           JOIN users u ON c.instructor_id = u.id 
+                                           WHERE c.id = ?";
+                    $course_details = db_select($course_details_sql, 'i', [$course_id]);
+
+                    if (!empty($course_details)) {
+                        $instructor_id = $course_details[0]['instructor_id'];
+                        $commission_rate = $course_details[0]['commission_rate'];
+                        
+                        // 2. Calculate commission from the final price paid by the student
+                        $earned_amount = ($final_price * $commission_rate) / 100;
+
+                        if ($earned_amount > 0) {
+                            // 3. Get or create instructor wallet
+                            $wallet = db_select("SELECT id FROM instructor_wallets WHERE instructor_id = ?", 'i', [$instructor_id]);
+                            if (empty($wallet)) {
+                                $wallet_id = db_execute("INSERT INTO instructor_wallets (instructor_id, balance) VALUES (?, 0.00)", 'i', [$instructor_id]);
+                            } else {
+                                $wallet_id = $wallet[0]['id'];
+                            }
+
+                            // 4. Update wallet balance and log the earning
+                            db_execute("UPDATE instructor_wallets SET balance = balance + ? WHERE id = ?", 'di', [$earned_amount, $wallet_id]);
+                            db_execute("INSERT INTO instructor_earnings (instructor_id, course_id, enrollment_id, sale_amount, commission_rate_at_sale, earned_amount) VALUES (?, ?, ?, ?, ?, ?)", 'iiiddd', [$instructor_id, $course_id, $enrollment_id, $final_price, $commission_rate, $earned_amount]);
+                        }
+                    }
+                }
+
                 // --- Handle Referral Usage ---
                 if (isset($_SESSION['applied_referral'])) {
                     $ref_info = $_SESSION['applied_referral'];

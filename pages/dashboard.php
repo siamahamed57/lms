@@ -34,6 +34,10 @@ if (isset($_GET['ajax'])) {
         'withdrawals' => __DIR__ . "/../admin/withdrawals.php",
         'my-referrals' => __DIR__ . "/../student/referrals.php",
         'my-wallet' => __DIR__ . "/../student/wallet.php",
+        'instructor-settings' => __DIR__ . "/../admin/instructor_settings.php",
+        'instructor-payouts' => __DIR__ . "/../admin/instructor_withdrawals.php",
+        'payouts' => __DIR__ . "/../instructor/wallet.php",
+        'payout-history' => __DIR__ . "/../instructor/withdrawals.php",
     ];
     $page_path = $page_map[$section] ?? '';
     if ($page_path && file_exists($page_path)) { include $page_path; } 
@@ -78,9 +82,24 @@ if ($section === 'referral-settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/../admin/referral_settings-logic.php';
 }
 
+// Handle instructor settings form submissions
+if ($section === 'instructor-settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../admin/instructor_settings-logic.php';
+}
+
+// Handle admin instructor withdrawal updates
+if ($section === 'instructor-payouts' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../admin/instructor_withdrawals-logic.php';
+}
+
 // Handle student referral generation
 if ($section === 'my-referrals' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/../student/referrals-logic.php';
+}
+
+// Handle instructor withdrawal request
+if ($section === 'payouts' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../instructor/wallet-logic.php';
 }
 
 // Handle student withdrawal request & admin withdrawal update
@@ -119,6 +138,8 @@ $adminMenu = [
     'referral-settings' => ['icon' => 'fas fa-cogs', 'text' => 'Referral Settings', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'referral-report' => ['icon' => 'fas fa-bullhorn', 'text' => 'Referral Report', 'gradient' => 'linear-gradient(135deg, #6366f1, #4f46e5)'],
     'withdrawals' => ['icon' => 'fas fa-hand-holding-usd', 'text' => 'Withdrawals', 'gradient' => 'linear-gradient(135deg, #ec4899, #db2777)'],
+    'instructor-settings' => ['icon' => 'fas fa-user-tie', 'text' => 'Instructor Settings', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
+    'instructor-payouts' => ['icon' => 'fas fa-money-check-alt', 'text' => 'Instructor Payouts', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
 
     'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
 
@@ -136,7 +157,8 @@ $instructorMenu = [
     'assessments' => ['icon' => 'fas fa-tasks', 'text' => 'Assessments', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'analytics' => ['icon' => 'fas fa-chart-line', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
     'communication' => ['icon' => 'fas fa-comments', 'text' => 'Messages', 'gradient' => 'linear-gradient(135deg, #06b6d4, #0891b2)'],
-    'payouts' => ['icon' => 'fas fa-wallet', 'text' => 'Earnings', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
+    'payouts' => ['icon' => 'fas fa-wallet', 'text' => 'My Wallet', 'gradient' => 'linear-gradient(135deg, #ec4899, #db2777)'],
+    'payout-history' => ['icon' => 'fas fa-history', 'text' => 'Payout History', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'profile' => ['icon' => 'fas fa-user-edit', 'text' => 'Profile', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
     'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
@@ -308,6 +330,10 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'withdrawals' => __DIR__ . "/../admin/withdrawals.php",
                     'my-referrals' => __DIR__ . "/../student/referrals.php",
                     'my-wallet' => __DIR__ . "/../student/wallet.php",
+                    'instructor-settings' => __DIR__ . "/../admin/instructor_settings.php",
+                    'instructor-payouts' => __DIR__ . "/../admin/instructor_withdrawals.php",
+                    'payouts' => __DIR__ . "/../instructor/wallet.php",
+                    'payout-history' => __DIR__ . "/../instructor/withdrawals.php",
                 ];
                 $page_path = $page_map[$section] ?? '';
 
