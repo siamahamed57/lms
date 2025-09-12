@@ -64,10 +64,18 @@ function db_select($query, $types = "", $params = []) {
 function db_execute($query, $types = "", $params = []) {
     global $conn;
     $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        die("SQL Prepare Failed: (" . $conn->errno . ") " . $conn->error . " -> SQL: $query");
+    }
     if ($types && $params) {
         $stmt->bind_param($types, ...$params);
     }
     $success = $stmt->execute();
+
+    if (!$success) {
+        // Provide a more detailed error message for execution failures
+        die("SQL Execute Failed: (" . $stmt->errno . ") " . $stmt->error . " -> SQL: $query");
+    }
     $insert_id = $stmt->insert_id;
     $stmt->close();
 
@@ -85,6 +93,33 @@ function db_execute($query, $types = "", $params = []) {
 function db_escape($value) {
     global $conn;
     return $conn->real_escape_string($value);
+}
+
+/**
+ * Get a single setting value from the database.
+ * @param string $key The setting key.
+ * @param mixed $default The default value to return if not found.
+ * @return mixed The setting value or default.
+ */
+function get_setting($key, $default = null) {
+    $result = db_select("SELECT setting_value FROM settings WHERE setting_key = ?", 's', [$key]);
+    if (!empty($result)) {
+        // Unserialize if the value is a serialized array or object
+        $value = $result[0]['setting_value'];
+        return @unserialize($value) !== false ? unserialize($value) : $value;
+    }
+    return $default;
+}
+
+/**
+ * Update or create a setting in the database.
+ * @param string $key The setting key.
+ * @param mixed $value The setting value.
+ * @return bool True on success, false on failure.
+ */
+function update_setting($key, $value) {
+    $value_to_store = is_array($value) || is_object($value) ? serialize($value) : $value;
+    return db_execute("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)", "ss", [$key, $value_to_store]);
 }
 
 /**

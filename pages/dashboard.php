@@ -16,6 +16,7 @@ if (isset($_GET['ajax'])) {
     $page_map = [
         'overview' => __DIR__ . "/../api/templates/overview.php",
         'create-course' => __DIR__ . "/../api/courses/create.php",
+                    'content' => __DIR__ . "/../admin/content.php",
         'manage' => __DIR__ . "/../api/courses/manage.php",
         'create-lesson' => __DIR__ . "/../api/lessons/create.php",
         'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
@@ -27,7 +28,13 @@ if (isset($_GET['ajax'])) {
         'my-courses' => __DIR__ . "/../student/my_courses.php",
         'lesson' => __DIR__ . "/../student/lesson.php",
         'certificate' => __DIR__ . "/../student/certificate.php",
-        'enrollment-management' => __DIR__ . "/../admin/enrollment-management.php",
+        'certificates' => __DIR__ . "/../student/certificates.php",
+        'grades' => __DIR__ . "/../student/grades.php",
+        'course-details' => __DIR__ . "/../api/courses/detail.php",
+        'browse-courses' => __DIR__ . "/../student/browse-courses.php",
+        'profile' => __DIR__ . "/profile.php",
+        'settings' => __DIR__ . "/../admin/settings.php",
+                    'enrollment-management' => __DIR__ . "/../admin/enrollment-management.php",
         'users' => __DIR__ . "/../api/users/user-management.php",
         'referral-settings' => __DIR__ . "/../admin/referral_settings.php",
         'referral-report' => __DIR__ . "/../admin/referrals.php",
@@ -78,6 +85,11 @@ if ($section === 'manage-coupons' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/manage-logic.php';
 }
 
+// Handle profile form submissions
+if ($section === 'profile' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/profile-logic.php';
+}
+
 // Handle referral settings form submissions
 if ($section === 'referral-settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/../admin/referral_settings-logic.php';
@@ -86,6 +98,11 @@ if ($section === 'referral-settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // Handle instructor settings form submissions
 if ($section === 'instructor-settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     include __DIR__ . '/../admin/instructor_settings-logic.php';
+}
+
+// Handle settings form submissions
+if ($section === 'settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    include __DIR__ . '/../admin/settings-logic.php';
 }
 
 // Handle admin instructor withdrawal updates
@@ -135,17 +152,13 @@ $adminMenu = [
     'manage-lessons' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Lessons', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
     'create-quiz' => ['icon' => 'fas fa-question-circle', 'text' => 'Create Quiz', 'gradient' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
     'manage-quizzes' => ['icon' => 'fas fa-tasks', 'text' => 'Manage Quizzes', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
-    'content' => ['icon' => 'fas fa-file-video', 'text' => 'Content', 'gradient' => 'linear-gradient(135deg, #8b5cf6, #7c3aed)'],
     'manage-coupons' => ['icon' => 'fas fa-tags', 'text' => 'Coupons', 'gradient' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
     'referral-settings' => ['icon' => 'fas fa-cogs', 'text' => 'Referral Settings', 'gradient' => 'linear-gradient(135deg, #10b981, #059669)'],
     'referral-report' => ['icon' => 'fas fa-bullhorn', 'text' => 'Referral Report', 'gradient' => 'linear-gradient(135deg, #6366f1, #4f46e5)'],
     'withdrawals' => ['icon' => 'fas fa-hand-holding-usd', 'text' => 'Withdrawals', 'gradient' => 'linear-gradient(135deg, #ec4899, #db2777)'],
     'instructor-settings' => ['icon' => 'fas fa-user-tie', 'text' => 'Instructor Settings', 'gradient' => 'linear-gradient(135deg, #f97316, #ea580c)'],
     'instructor-payouts' => ['icon' => 'fas fa-money-check-alt', 'text' => 'Instructor Payouts', 'gradient' => 'linear-gradient(135deg, #ef4444, #dc2626)'],
-
     'reports' => ['icon' => 'fas fa-chart-bar', 'text' => 'Analytics', 'gradient' => 'linear-gradient(135deg, #84cc16, #65a30d)'],
-
-    'settings' => ['icon' => 'fas fa-cogs', 'text' => 'Settings', 'gradient' => 'linear-gradient(135deg, #64748b, #475569)'],
     'logout' => ['icon' => 'fas fa-sign-out-alt', 'text' => 'Logout', 'gradient' => 'linear-gradient(135deg, #ef4444, #b91c1c)']
 ];
 
@@ -180,6 +193,32 @@ $studentMenu = [
 
 // Active menu based on role
 $activeMenu = ($userRole === 'admin') ? $adminMenu : (($userRole === 'instructor') ? $instructorMenu : $studentMenu);
+
+// --- Profile Completion Check ---
+function is_profile_complete($user_id, $role) {
+    $user_data = db_select("SELECT phone, bio, university, department FROM users WHERE id = ?", 'i', [$user_id]);
+    if (empty($user_data)) return false; // User not found
+    $user = $user_data[0];
+
+    if ($role === 'student') {
+        return !empty($user['phone']) && !empty($user['university']) && !empty($user['department']);
+    } elseif ($role === 'instructor') {
+        return !empty($user['phone']) && !empty($user['bio']);
+    }
+    return true; // Admin profile is always considered complete
+}
+
+$profile_is_complete = is_profile_complete($_SESSION['user_id'], $userRole);
+
+if (!$profile_is_complete) {
+    $forced_section = 'profile';
+    if ($section !== $forced_section && $section !== 'logout') {
+        header("Location: dashboard?page=$forced_section&notice=complete_profile");
+        exit;
+    }
+    // Filter the menu to only show Profile and Logout
+    $activeMenu = array_intersect_key($activeMenu, ['profile' => '', 'logout' => '']);
+}
 
 // Function to generate sidebar links
 function generateNavLinks($menu, $section) {
@@ -314,6 +353,7 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                 $page_map = [
                     'overview' => __DIR__ . "/../api/templates/overview.php",
                     'create-course' => __DIR__ . "/../api/courses/create.php",
+        'content' => __DIR__ . "/../admin/content.php",
                     'manage' => __DIR__ . "/../api/courses/manage.php",
                     'create-lesson' => __DIR__ . "/../api/lessons/create.php",
                     'manage-lessons' => __DIR__ . "/../api/lessons/manage.php",
@@ -325,7 +365,13 @@ $userAvatar = $_SESSION['user_avatar'] ?? '';
                     'my-courses' => __DIR__ . "/../student/my_courses.php",
                     'lesson' => __DIR__ . "/../student/lesson.php",
                     'certificate' => __DIR__ . "/../student/certificate.php",
-                    'enrollment-management' => __DIR__ . "/../student/enrollment-management.php",
+                    'certificates' => __DIR__ . "/../student/certificates.php",
+                    'grades' => __DIR__ . "/../student/grades.php",
+                    'course-details' => __DIR__ . "/../api/courses/detail.php",
+                    'browse-courses' => __DIR__ . "/../student/browse-courses.php",
+                    'profile' => __DIR__ . "/profile.php",
+                    'settings' => __DIR__ . "/../admin/settings.php",
+        'enrollment-management' => __DIR__ . "/../admin/enrollment-management.php",
                     'users' => __DIR__ . "/../api/users/user-management.php",
                     'referral-settings' => __DIR__ . "/../admin/referral_settings.php",
                     'referral-report' => __DIR__ . "/../admin/referrals.php",

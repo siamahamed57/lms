@@ -11,7 +11,6 @@ $dashboard_pages = [
     'account',
     'enroll',
     'pay',
-    'course_details',
     // Dashboard sections loaded via AJAX
     'overview',
     'users',

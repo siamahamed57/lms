@@ -78,18 +78,11 @@ foreach ($curriculum_items as $item) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($course['title']) ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <style>
+<!-- Scripts required for this page, loaded dynamically. -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
         :root {
             /* Dark Theme Variables (default) */
             --primary: #6366f1;
@@ -113,39 +106,38 @@ foreach ($curriculum_items as $item) {
         }
 
         [data-theme="light"] {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --secondary: #9333ea;
-            --accent: #0891b2;
-            --bg-primary: #f1f5f9;
-            --bg-secondary: #e2e8f0;
-            --bg-tertiary: #ffffff;
-            --surface: rgba(0, 0, 0, 0.03);
-            --surface-hover: rgba(0, 0, 0, 0.05);
-            --border: rgba(0, 0, 0, 0.1);
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
+    /* Primary Colors */
+    --primary: #4f46e5;        /* Indigo */
+    --primary-dark: #4338ca;   /* Darker Indigo for hover/focus */
+    --secondary: #9333ea;      /* Purple accent */
+    --accent: #0891b2;         /* Teal/blue accent */
+
+    /* Backgrounds */
+    --bg-primary: #f9fafb;     /* Light greyish background for main pages */
+    --bg-secondary: #f1f5f9;   /* Slightly darker for cards/sections */
+    --bg-tertiary: #ffffff;    /* White for surfaces like modals or cards */
+    --surface: rgba(255, 255, 255, 0.5);       /* Transparent overlay surfaces */
+    --surface-hover: rgba(0, 0, 0, 0.03);      /* Subtle hover effect */
+    --border: rgba(0, 0, 0, 0.1);             /* Light borders */
+
+    /* Text Colors */
+    --text-primary: #111827;   /* Dark grey for main text */
+    --text-secondary: #374151; /* Medium grey for secondary text */
+    --text-muted: #6b7280;     /* Muted/disabled text */
+
+    /* Glass Effect */
+    --glass-bg: rgba(255, 255, 255, 0.7);      /* Frosted glass */
+    --glass-border: rgba(0, 0, 0, 0.1);        /* Subtle border for glass */
+
+    /* Optional - Shadows */
+    --shadow-light: rgba(0, 0, 0, 0.05);       /* Light box shadow */
+    --shadow-hover: rgba(0, 0, 0, 0.08);       /* Slightly darker shadow for hover */
+}
 
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* The header provides the base body styles, but we can add page-specific backgrounds here */
+        body { background: var(--bg-primary); }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Dot Grid Background */
         .dot-grid-bg {
             position: fixed;
             top: 0;
@@ -156,13 +148,6 @@ foreach ($curriculum_items as $item) {
             background: var(--bg-primary);
             background-image: radial-gradient(var(--border) 1px, transparent 1px);
             background-size: 16px 16px;
-        }
-
-        /* Animated Gradient Overlay
-       
-        @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
         }
 
         /* Glass morphism effects */
@@ -408,32 +393,9 @@ foreach ($curriculum_items as $item) {
             top: 0;
             left: 0;
         }
-
-        /* Theme Toggle Button */
-        .theme-toggle {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 1000;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
     </style>
-</head>
-<body>
-    <div class="dot-grid-bg"></div>
-    <div class="animated-overlay"></div>
-    <button id="theme-toggle" type="button" class="theme-toggle glass hover:bg-surface-hover transition-colors">
-        <i id="theme-icon-dark" class="fas fa-moon text-yellow-300"></i>
-        <i id="theme-icon-light" class="fas fa-sun text-orange-400 hidden"></i>
-    </button>
-    
-    <!-- Hero Section -->
+
+<!-- Hero Section -->
     <section class="relative z-10 py-20 px-6">
         <div class="container mx-auto max-w-7xl">
             <div class="grid md:grid-cols-2 gap-12 items-center">
@@ -443,7 +405,7 @@ foreach ($curriculum_items as $item) {
                             <i class="fas fa-star text-yellow-400 mr-2"></i>
                             <span class="gradient-text-primary">Premium Course</span>
                         </div>
-                        <h1 class="text-5xl md:text-7xl font-black leading-tight gradient-text hero-title">
+                        <h1 class="text-5xl md:text-7xl font-black  hero-title">
                             <?= htmlspecialchars($course['title']) ?>
                         </h1>
                         <p class="text-xl text-gray-300 leading-relaxed hero-subtitle">
@@ -774,37 +736,9 @@ foreach ($curriculum_items as $item) {
         </div>
     </div>
 
-    <script>
+<script>
         document.addEventListener('DOMContentLoaded', () => {
             const isUserLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-
-            // --- Theme Toggler ---
-            const themeToggle = document.getElementById('theme-toggle');
-            const lightIcon = document.getElementById('theme-icon-light');
-            const darkIcon = document.getElementById('theme-icon-dark');
-            const htmlEl = document.documentElement;
-
-            const setTheme = (theme) => {
-                htmlEl.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-                if (theme === 'dark') {
-                    darkIcon.classList.remove('hidden');
-                    lightIcon.classList.add('hidden');
-                } else {
-                    darkIcon.classList.add('hidden');
-                    lightIcon.classList.remove('hidden');
-                }
-            };
-
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = htmlEl.getAttribute('data-theme');
-                setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-            });
-
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                setTheme(savedTheme);
-            }
 
             // --- Accordion Logic ---
             const accordionHeaders = document.querySelectorAll('.accordion-header');
@@ -884,6 +818,4 @@ foreach ($curriculum_items as $item) {
             // gsap.from('.hero-meta > div', { opacity: 0, y: 20, duration: 1, ease: "power2.out", stagger: 0.1, delay: 0.5 });
             // gsap.from('.hero-visual', { opacity: 0, x: 50, duration: 1.5, ease: "power4.out", delay: 0.8 });
         });
-    </script>
-</body>
-</html>
+</script>

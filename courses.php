@@ -24,11 +24,24 @@ $courses = db_select($courses_sql);
 ?>
 
 <style>
+    /* Theme variables to match home.php and about.php */
+    :root, [data-theme="dark"] {
+        --background-gradient-dots: #4f46e5;
+        --background-container: #0f172a;
+    }
+
+    [data-theme="light"] {
+        --background-gradient-dots: #818cf8;
+        --background-container: #e2e8f0;
+    }
+
     /* Custom styles for the courses page, consistent with your site's theme */
     .course-card {
-        background: var(--surface, rgba(255, 255, 255, 0.05));
+        background: var(--surface, rgba(22, 27, 34, 0.6));
+        backdrop-filter: blur(16px) saturate(180%);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
         border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
-        border-radius: 16px;
+        border-radius: 24px; /* Softer, more modern radius */
         overflow: hidden;
         transition: all 0.3s ease;
         display: flex;
@@ -36,13 +49,14 @@ $courses = db_select($courses_sql);
     }
     .course-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         border-color: var(--primary, #6366f1);
     }
     .card-thumbnail {
         height: 200px;
         width: 100%;
         object-fit: cover;
+        border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
     }
     .card-content {
         padding: 1.5rem;
@@ -81,8 +95,48 @@ $courses = db_select($courses_sql);
         font-size: 0.8rem;
         color: var(--text-secondary, #a1a1aa);
     }
+
+    /* Animated Background Shapes from about.php */
+    .floating-shapes {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+    }
+    .floating-shapes li {
+        position: absolute;
+        display: block;
+        list-style: none;
+        width: 20px;
+        height: 20px;
+        background: rgba(164, 53, 240, 0.2);
+        animation: animate-bg 25s linear infinite;
+        bottom: -200px;
+    }
+    .floating-shapes li:nth-child(1){ left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+    .floating-shapes li:nth-child(2){ left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+    .floating-shapes li:nth-child(3){ left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+    .floating-shapes li:nth-child(4){ left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+    .floating-shapes li:nth-child(5){ left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+    .floating-shapes li:nth-child(6){ left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+    .floating-shapes li:nth-child(7){ left: 35%; width: 150px; height: 150px; animation-delay: 7s; }
+    .floating-shapes li:nth-child(8){ left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; }
+    .floating-shapes li:nth-child(9){ left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; }
+    .floating-shapes li:nth-child(10){ left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; }
+
+    @keyframes animate-bg {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 0; }
+        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+    }
 </style>
 
+<div class="absolute inset-0 -z-10 h-full w-full bg-[var(--background-container)] bg-[radial-gradient(var(--background-gradient-dots)_1px,transparent_1px)] [background-size:16px_16px]"></div>
+<ul class="floating-shapes">
+    <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+</ul>
 <main class="container mx-auto max-w-7xl px-4 py-10">
     <div class="text-center mb-12">
         <h1 class="text-4xl md:text-5xl font-extrabold gradient-text-primary mb-4">Explore Our Courses</h1>

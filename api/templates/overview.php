@@ -188,13 +188,39 @@ if ($userRole === 'admin') {
     $enrolled_courses = db_select("SELECT COUNT(id) as count FROM enrollments WHERE student_id = ?", 'i', [$userId])[0]['count'] ?? 0;
     $completed_courses = db_select("SELECT COUNT(id) as count FROM enrollments WHERE student_id = ? AND progress >= 100", 'i', [$userId])[0]['count'] ?? 0;
     $certificates_earned = db_select("SELECT COUNT(id) as count FROM certificates WHERE student_id = ?", 'i', [$userId])[0]['count'] ?? 0;
-    $continue_learning = db_select("SELECT c.id, c.title, c.thumbnail, e.progress FROM enrollments e JOIN courses c ON e.course_id = c.id WHERE e.student_id = ? AND e.progress < 100 ORDER BY e.enrolled_at DESC LIMIT 4", 'i', [$userId]);
+    $continue_learning_sql = "
+    SELECT 
+        c.id as course_id, 
+        c.title, 
+        c.thumbnail, 
+        e.progress,
+        (
+            SELECT l.id 
+            FROM lessons l
+            WHERE l.course_id = c.id 
+            AND l.id NOT IN (SELECT slc.lesson_id FROM student_lesson_completion slc WHERE slc.student_id = e.student_id)
+            ORDER BY l.order_no ASC, l.id ASC
+            LIMIT 1
+        ) AS next_lesson_id,
+        (
+            SELECT l.id
+            FROM lessons l
+            WHERE l.course_id = c.id
+            ORDER BY l.order_no ASC, l.id ASC
+            LIMIT 1
+        ) AS first_lesson_id
+    FROM enrollments e 
+    JOIN courses c ON e.course_id = c.id 
+    WHERE e.student_id = ? AND e.progress < 100 
+    ORDER BY e.enrolled_at DESC 
+    LIMIT 4";
+    $continue_learning = db_select($continue_learning_sql, 'i', [$userId]);
 ?>
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-header"><div class="stat-label">Enrolled Courses</div><i class="fas fa-book-reader stat-icon"></i></div>
             <div class="stat-value"><?= $enrolled_courses ?></div>
-            <a href="dashboard?page=my-courses">View My Courses &rarr;</a>
+            <a href="dashboard?page=my-courses">View My Courses →</a>
         </div>
         <div class="stat-card">
             <div class="stat-header"><div class="stat-label">Completed Courses</div><i class="fas fa-check-circle stat-icon"></i></div>
@@ -203,7 +229,7 @@ if ($userRole === 'admin') {
         <div class="stat-card">
             <div class="stat-header"><div class="stat-label">Certificates Earned</div><i class="fas fa-award stat-icon"></i></div>
             <div class="stat-value"><?= $certificates_earned ?></div>
-            <a href="dashboard?page=certificates">View Certificates &rarr;</a>
+            <a href="dashboard?page=certificates">View Certificates →</a>
         </div>
     </div>
 
@@ -212,10 +238,13 @@ if ($userRole === 'admin') {
         <div class="quick-access-card">
             <h4>Continue Learning</h4>
             <ul>
-                <?php foreach($continue_learning as $course): ?>
+                <?php foreach($continue_learning as $course): 
+                    $lesson_to_link = $course['next_lesson_id'] ?? $course['first_lesson_id'];
+                    if (!$lesson_to_link) continue; // Skip if course has no lessons
+                ?>
                 <li>
                     <div>
-                        <a href="dashboard?page=lesson&course_id=<?= $course['id'] ?>" class="course-title"><?= htmlspecialchars($course['title']) ?></a>
+                        <a href="dashboard?page=lesson&id=<?= $lesson_to_link ?>" class="course-title"><?= htmlspecialchars($course['title']) ?></a>
                         <div class="course-progress">
                             <span><?= (int)$course['progress'] ?>% Complete</span>
                             <div class="progress-bar">
@@ -223,7 +252,7 @@ if ($userRole === 'admin') {
                             </div>
                         </div>
                     </div>
-                    <a href="dashboard?page=lesson&course_id=<?= $course['id'] ?>"><i class="fas fa-arrow-right"></i></a>
+                    <a href="dashboard?page=lesson&id=<?= $lesson_to_link ?>"><i class="fas fa-arrow-right"></i></a>
                 </li>
                 <?php endforeach; ?>
             </ul>
